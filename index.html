@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Agendar Cita</title>
+</head>
+<body>
+  <h1>Agenda tu cita</h1>
+
+  <label>Servicio:</label>
+  <select id="services"></select>
+
+  <br><br>
+
+  <label>Fecha:</label>
+  <input type="date" id="date">
+
+  <br><br>
+
+  <label>Hora:</label>
+  <select id="time"></select>
+
+  <br><br>
+
+  <label>Nombre:</label>
+  <input type="text" id="name">
+
+  <br><br>
+
+  <label>Email:</label>
+  <input type="email" id="email">
+
+  <br><br>
+
+  <button onclick="book()">Agendar</button>
+
+  <p id="result"></p>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function loadServices() {
+      const { data } = await db.from('services').select('*');
+      let html = '';
+      data.forEach(s => html += `<option value="${s.id}">${s.name}</option>`);
+      document.getElementById('services').innerHTML = html;
+    }
+
+    async function loadTimes() {
+      const date = document.getElementById("date").value;
+      const { data: ap } = await db.from('appointments').select('*').eq('date', date);
+      const { data: bl } = await db.from('blocked_times').select('*').eq('date', date);
+
+      const allTimes = ["09:00","11:00","13:00","15:00","17:00"];
+      const occupied = [...ap.map(a=>a.time), ...bl.map(b=>b.time)];
+      const free = allTimes.filter(t => !occupied.includes(t));
+
+      let html = '';
+      free.forEach(t => html += `<option>${t}</option>`);
+      document.getElementById("time").innerHTML = html;
+    }
+
+    async function book() {
+      const data = {
+        service_id: document.getElementById('services').value,
+        client_name: document.getElementById('name').value,
+        client_email: document.getElementById('email').value,
+        date: document.getElementById('date').value,
+        time: document.getElementById('time').value
+      };
+
+      let r = await db.from('appointments').insert(data);
+      document.getElementById("result").textContent = "Cita registrada correctamente";
+    }
+
+    loadServices();
+    document.getElementById("date").onchange = loadTimes;
+  </script>
+</body>
+</html>
