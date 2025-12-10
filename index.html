@@ -8,39 +8,44 @@
 
   <label>Servicio:</label>
   <select id="services"></select>
-
   <br><br>
 
   <label>Fecha:</label>
   <input type="date" id="date">
-
   <br><br>
 
   <label>Hora:</label>
   <select id="time"></select>
-
   <br><br>
 
   <label>Nombre:</label>
   <input type="text" id="name">
-
   <br><br>
 
   <label>Email:</label>
   <input type="email" id="email">
-
   <br><br>
 
-  <label>Direccion de escaneo:</label>
+  <label>Dirección de escaneo:</label>
   <input type="text" id="direccion">
-
   <br><br>
 
-  <h1>Distritos sin costo adicional: San Isidro, San Borja, Miraflores</h1>
-  <h1>San Miguel, Magdalena, Jesus Maria, Surco</h1>
+  <label>Método de pago:</label>
+  <select id="payment_method">
+    <option value="yape">Yape</option>
+    <option value="plin">Plin</option>
+    <option value="transferencia">Transferencia</option>
+  </select>
+  <br><br>
+
+  <label>Subir comprobante (imagen):</label>
+  <input type="file" id="voucher">
+  <br><br>
+
+  <h3>Distritos sin costo adicional:</h3>
+  <p>San Isidro, San Borja, Miraflores, San Miguel, Magdalena, Jesús María, Surco</p>
 
   <button onclick="book()">Agendar</button>
-
   <p id="result"></p>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
@@ -49,54 +54,131 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // ------------------------------
+    // Cargar servicios
+    // ------------------------------
     async function loadServices() {
-      const { data } = await db.from('services').select('*');
-      let html = '';
-      data.forEach(s => html += `<option value="${s.id}">${s.name}</option>`);
-      document.getElementById('services').innerHTML = html;
+      const { data } = await db.from("services").select("*");
+      let html = "";
+      if (data) {
+        data.forEach(s => html += `<option value="${s.id}">${s.name}</option>`);
+      }
+      document.getElementById("services").innerHTML = html;
     }
 
+    // ------------------------------
+    // Cargar horas disponibles
+    // ------------------------------
     async function loadTimes() {
       const date = document.getElementById("date").value;
+      if (!date) return;
+
       const now = new Date();
       const todayStr = now.toISOString().split("T")[0];
 
-      if (!date) return;
-
-      // Bloquear fechas pasadas
       if (new Date(date) < new Date(todayStr)) {
         document.getElementById("time").innerHTML = "";
         return;
       }
 
-      const { data: ap } = await db.from('appointments').select('*').eq('date', date);
-      const { data: bl } = await db.from('blocked_times').select('*').eq('date', date);
+      const { data: ap } = await db.from("appointments").select("*").eq("date", date);
+      const { data: bl } = await db.from("blocked_times").select("*").eq("date", date);
 
       const allTimes = ["09:00","11:00","13:00","15:00","17:00"];
       const occupied = [...ap.map(a=>a.time), ...bl.map(b=>b.time)];
-      const free = allTimes.filter(t => !occupied.includes(t));
 
-      let html = '';
+      const free = allTimes.filter(t => {
+        if (occupied.includes(t)) return false;
+
+        const [h,m] = t.split(":");
+        const slot = new Date(date + "T" + h + ":" + m + ":00");
+
+        if (date === todayStr && slot < now) return false;
+
+        const diffHours = (slot - now)/3600000;
+        if (date === todayStr && diffHours < 2) return false;
+
+        return true;
+      });
+
+      let html = "";
       free.forEach(t => html += `<option>${t}</option>`);
       document.getElementById("time").innerHTML = html;
     }
 
+    // ------------------------------
+    // Agendar cita + subir comprobante
+    // ------------------------------
     async function book() {
-      const data = {
-        service_id: document.getElementById('services').value,
-        client_name: document.getElementById('name').value,
-        client_email: document.getElementById('email').value,
-        date: document.getElementById('date').value,
-        time: document.getElementById('time').value
-      };
+      const fileInput = document.getElementById("voucher");
 
-      let r = await db.from('appointments').insert(data);
+      // ✅ Validar que haya archivo
+      if (fileInput.files.length === 0) {
+        document.getElementById("result").textContent = "Debes subir un comprobante antes de agendar.";
+        return;
+      }
+
+      const service_id = document.getElementById("services").value;
+      const client_name = document.getElementById("name").value;
+      const client_email = document.getElementById("email").value;
+      const direccion = document.getElementById("direccion").value;
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
+      const payment_method = document.getElementById("payment_method").value;
+
+      // 1️⃣ Subir comprobante primero
+      const file = fileInput.files[0];
+      const fileName = Date.now() + "_" + file.name;
+
+      let { data: uploadData, error: uploadError } = await db.storage.from("yape-comprobantes").upload(fileName, file);
+      if (uploadError) {
+        document.getElementById("result").textContent = "Error al subir comprobante: " + uploadError.message;
+        return;
+      }
+
+      const { data: publicUrl } = db.storage.from("yape-comprobantes").getPublicUrl(fileName);
+      const voucherUrl = publicUrl.publicUrl;
+
+      // 2️⃣ Insertar cita en appointments
+      let { data: cita, error: citaError } = await db.from("appointments").insert({
+        service_id,
+        client_name,
+        client_email,
+        direccion,
+        date,
+        time,
+        payment_method,
+        status: "pending",
+        created_at: new Date().toISOString()
+      }).select().single();
+
+      if (citaError) {
+        document.getElementById("result").textContent = "Error al registrar cita: " + citaError.message;
+        return;
+      }
+
+      // 3️⃣ Insertar en yape_payments
+      let { error: paymentError } = await db.from("yape_payments").insert({
+        cita_id: cita.id,
+        imagen_url: voucherUrl,
+        created_at: new Date().toISOString()
+      });
+
+      if (paymentError) {
+        document.getElementById("result").textContent = "Error al registrar comprobante: " + paymentError.message;
+        return;
+      }
+
       document.getElementById("result").textContent = "Cita registrada correctamente";
     }
 
-    loadServices();
-    document.getElementById("date").onchange = loadTimes;
-
+    // ------------------------------
+    // Ejecutar cuando DOM esté listo
+    // ------------------------------
+    document.addEventListener("DOMContentLoaded", () => {
+      loadServices();
+      document.getElementById("date").onchange = loadTimes;
+    });
   </script>
 </body>
 </html>
