@@ -1,56 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agendar Cita</title>
 
 <style>
     body { font-family: Arial; max-width: 650px; margin: auto; padding: 20px; }
-    label { font-weight: bold; margin-top: 10px; display: block; }
+    label { font-weight:bold; margin-top: 10px; display:block; }
     input, select, button { width: 100%; padding: 10px; margin-top: 5px; }
-    .disponible { color: green; font-weight: bold; }
-    .ocupado { color: red; font-weight: bold; }
+    .disponible { color: green; }
+    .ocupado { color: red; }
 </style>
+
 </head>
 <body>
 
-<h2>Reserva tu Cita</h2>
+<h2>Reserva tu cita</h2>
 
 <!-- SERVICIO -->
 <label>Servicio:</label>
-<select id="servicio">
-    <option value="">Seleccione un servicio</option>
-    <option value="Consulta general">Consulta general</option>
-    <option value="Terapia">Terapia</option>
-    <option value="Control">Control</option>
-</select>
+<select id="services"></select>
 
-<!-- DATOS DEL CLIENTE -->
-<label>Nombre completo:</label>
-<input id="nombre" placeholder="Tu nombre">
+<!-- DATOS -->
+<label>Nombre:</label>
+<input id="nombre">
 
 <label>Email:</label>
-<input id="email" type="email" placeholder="tucorreo@gmail.com">
+<input id="email" type="email">
 
 <label>Teléfono:</label>
-<input id="telefono" placeholder="999999999">
+<input id="telefono">
 
 <label>Dirección:</label>
-<input id="direccion" placeholder="Tu dirección">
+<input id="direccion">
 
 <!-- FECHA -->
 <label>Fecha:</label>
-<input type="date" id="fecha" onchange="cargarHoras()">
+<input type="date" id="date">
 
-<!-- HORAS DISPONIBLES -->
+<!-- HORAS -->
 <label>Hora disponible:</label>
-<select id="hora">
-    <option value="">Selecciona una fecha primero</option>
-</select>
+<select id="time">
+ 
+
 
 <!-- FOTO DEL YAPE -->
-<label>Foto del pago Yape:</label>
+<label>Foto del Yape:</label>
 <input type="file" id="fotoYape" accept="image/*">
 
 <button onclick="agendar()">Reservar cita</button>
@@ -58,77 +54,110 @@
 <p id="mensaje"></p>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-/* ============================================
-      CONFIGURACIÓN SUPABASE
-=============================================== */
-const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
-const BUCKET = "yape-payments"; // Usa el tuyo
+/* ===========================================================
+   CONFIGURAR SUPABASE
+=========================================================== */
+const URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
+const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+const BUCKET = "pagos-yape";
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = supabase.createClient(URL, KEY);
 
-/* ============================================
-      CARGAR HORAS DISPONIBLES
-=============================================== */
+/* ===========================================================
+   1. CARGAR SERVICIOS DESDE LA TABLA `services`
+=========================================================== */
+async function cargarServicios() {
+    const { data, error } = await supabase
+        .from("services")
+        .select("*");
+
+    const sel = document.getElementById("servicio");
+    sel.innerHTML = "<option value=''>Seleccione un servicio</option>";
+
+    data.forEach(s => {
+        const op = document.createElement("option");
+        op.value = s.id;
+        op.textContent = s.name;
+        sel.appendChild(op);
+    });
+}
+
+/* ===========================================================
+   2. CARGAR HORAS DISPONIBLES
+      Usa:
+      - tabla blocked_times
+      - tabla citas
+=========================================================== */
 async function cargarHoras() {
     const fecha = document.getElementById("fecha").value;
-    const horaSelect = document.getElementById("hora");
-    horaSelect.innerHTML = "<option>Cargando...</option>";
+    const horaSel = document.getElementById("hora");
 
     if (!fecha) return;
 
-    // Define tus rangos de horas normales según tu código original
-    const horas = [
-        "09:00", "10:00", "11:00",
-        "14:00", "15:00", "16:00"
-    ];
+    horaSel.innerHTML = "<option>Cargando...</option>";
 
-    // Consulta supabase para ver citas ocupadas
+    // horario base (ajusta si deseas)
+    const horas = ["09:00","10:00","11:00","14:00","15:00","16:00"];
+
+    // horas bloqueadas manualmente
+    const { data: bloqueadas } = await supabase
+        .from("blocked_times")
+        .select("hora")
+        .eq("fecha", fecha);
+
+    // horas ocupadas por citas aprobadas o pendientes
     const { data: citas } = await supabase
         .from("citas")
         .select("hora, estado")
         .eq("fecha", fecha);
 
-    horaSelect.innerHTML = "";
+    horaSel.innerHTML = "";
 
     horas.forEach(h => {
+        const estaBloqueada = bloqueadas?.some(b => b.hora === h);
         const ocupada = citas?.some(c =>
             c.hora === h && c.estado !== "rechazada"
         );
 
-        const option = document.createElement("option");
-        option.value = h;
-        option.textContent = ocupada ? `${h} - Ocupado` : h;
+        const opt = document.createElement("option");
+        opt.value = h;
 
-        if (ocupada) option.disabled = true;
-
-        horaSelect.appendChild(option);
+        if (estaBloqueada || ocupada) {
+            opt.textContent = h + " - Ocupado";
+            opt.disabled = true;
+        } else {
+            opt.textContent = h;
+        }
+        horaSel.appendChild(opt);
     });
 }
 
-/* ============================================
-      AGENDAR CITA
-=============================================== */
+/* ===========================================================
+   3. REGISTRAR CITA + SUBIR FOTO YAPE
+      Inserta:
+      - en citas
+      - en yape_payments
+=========================================================== */
 async function agendar() {
     const nombre = document.getElementById("nombre").value;
     const email = document.getElementById("email").value;
     const telefono = document.getElementById("telefono").value;
     const direccion = document.getElementById("direccion").value;
-    const servicio = document.getElementById("servicio").value;
-
+    const servicio_id = document.getElementById("servicio").value;
     const fecha = document.getElementById("fecha").value;
     const hora = document.getElementById("hora").value;
     const foto = document.getElementById("fotoYape").files[0];
 
-    const mensaje = document.getElementById("mensaje");
+    const m = document.getElementById("mensaje");
 
-    if (!servicio || !nombre || !email || !telefono || !direccion || !fecha || !hora || !foto) {
-        mensaje.innerHTML = "Por favor completa todos los campos.";
+    if (!nombre || !email || !telefono || !direccion || !servicio_id || !fecha || !hora || !foto) {
+        m.innerHTML = "Completa todos los campos.";
         return;
     }
 
-    // Subir la imagen al bucket
+    // Subir imagen a bucket
     const nombreArchivo = Date.now() + "-" + foto.name;
 
     const { error: uploadError } = await supabase.storage
@@ -136,39 +165,47 @@ async function agendar() {
         .upload(nombreArchivo, foto);
 
     if (uploadError) {
-        mensaje.innerHTML = "Error subiendo la imagen del Yape.";
+        m.innerHTML = "Error subiendo imagen.";
         return;
     }
 
-    const { data: urlImagen } = supabase.storage
+    const { data: urlData } = supabase.storage
         .from(BUCKET)
         .getPublicUrl(nombreArchivo);
 
-    // Registrar cita en estado pendiente_validación
-    const { error: insertError } = await supabase
+    // Insertar cita
+    const { data: cita, error: citaError } = await supabase
         .from("citas")
-        .insert([
-            {
-                servicio,
-                nombre,
-                email,
-                telefono,
-                direccion,
-                fecha,
-                hora,
-                estado: "pendiente_validación",
-                imagen_yape: urlImagen.publicUrl
-            }
-        ]);
+        .insert([{
+            nombre,
+            email,
+            telefono,
+            direccion,
+            servicio_id,
+            fecha,
+            hora,
+            estado: "pendiente_validación"
+        }])
+        .select()
+        .single();
 
-    if (insertError) {
-        mensaje.innerHTML = "Error registrando la cita.";
+    if (citaError) {
+        m.innerHTML = "Error creando cita.";
         return;
     }
 
-    mensaje.innerHTML = "Tu cita fue registrada y está pendiente de validación del pago.";
-}
-</script>
+    // insertar pago Yape
+    await supabase
+        .from("yape_payments")
+        .insert([{
+            cita_id: cita.id,
+            imagen_url: urlData.publicUrl
+        }]);
 
+    m.innerHTML = "Cita registrada. Pendiente de validación del pago.";
+}
+
+cargarServicios();
+</script>
 </body>
 </html>
