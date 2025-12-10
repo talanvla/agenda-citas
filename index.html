@@ -36,14 +36,9 @@
 
   <br><br>
 
-
 <body>
   <h1>Distritos sin costo adicional: San Isidro, San Borja, Miraflores</h1>
- <h1>San Miguel, Magdalena, Jesus Maria, Surco</h1>	
-
-
-
-
+  <h1>San Miguel, Magdalena, Jesus Maria, Surco</h1>
 
   <button onclick="book()">Agendar</button>
 
@@ -64,12 +59,43 @@
 
     async function loadTimes() {
       const date = document.getElementById("date").value;
+      const now = new Date();
+      const todayStr = now.toISOString().split("T")[0];
+
       const { data: ap } = await db.from('appointments').select('*').eq('date', date);
       const { data: bl } = await db.from('blocked_times').select('*').eq('date', date);
 
       const allTimes = ["09:00","11:00","13:00","15:00","17:00"];
-      const occupied = [...ap.map(a=>a.time), ...bl.map(b=>b.time)];
-      const free = allTimes.filter(t => !occupied.includes(t));
+      const occupied = [...ap.map(a => a.time), ...bl.map(b => b.time)];
+
+      let free = allTimes.filter(t => !occupied.includes(t));
+
+      // =====================
+      // 1) BLOQUEAR HORAS PASADAS
+      // =====================
+      if (date === todayStr) {
+        free = free.filter(t => {
+          const [hh, mm] = t.split(":");
+          const slot = new Date();
+          slot.setHours(hh, mm, 0, 0);
+
+          return slot > now; // solo horas futuras
+        });
+      }
+
+      // =====================
+      // 2) FILTRAR SOLO HORAS CON 2 HORAS DE ANTICIPACIÓN
+      // =====================
+      if (date === todayStr) {
+        free = free.filter(t => {
+          const [hh, mm] = t.split(":");
+          const slot = new Date();
+          slot.setHours(hh, mm, 0, 0);
+
+          const diffHours = (slot - now) / (1000 * 60 * 60);
+          return diffHours >= 2;
+        });
+      }
 
       let html = '';
       free.forEach(t => html += `<option>${t}</option>`);
