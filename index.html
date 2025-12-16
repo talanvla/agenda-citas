@@ -100,7 +100,7 @@ Para regalarte revisión de dueños, asesorías y más
       const { data: ap } = await db.from("appointments").select("*").eq("date", date);
       const { data: bl } = await db.from("blocked_times").select("*").eq("date", date);
 
-      const allTimes = ["09:00","11:00","13:00","15:00","17:00"];
+      const allTimes = ["08:00","10:30","13:00","15:00"]; //horarios para atencion
       const occupied = [...ap.map(a=>a.time), ...bl.map(b=>b.time)];
 
       const free = allTimes.filter(t => {
