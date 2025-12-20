@@ -3,6 +3,7 @@
 <head>
   <title>Agendar Cita</title>
 </head>
+
 <body>
   <h1>Agenda tu cita</h1>
 
@@ -39,59 +40,45 @@
 
   <label>Subir comprobante (imagen):</label>
   <input type="file" id="voucher">
-
-  <h3>Distritos sin costo adicional:</h3>
-  <p>
-    San Isidro, San Borja, Miraflores,<br>
-    San Miguel, Magdalena, Jesús María, Surco
-  </p>
-
-  <h4>Consideraciones</h4>
-  <p>
-    Para reservar la cita se debe abonar S/100 <br>
-    como garantía al yape/plin 955507470 de Andres Talavera.<br>
-    La diferencia al culminar el servicio.<br><br>
-    Teléfono de contacto: +51972598538, IG: @predicar.pe<br>
-    Para regalarte revisión de dueños, asesorías y más
-  </p>
-
-  <p>Atentamente</p>
-  <p>Ingeniero Mecatrónico - Andres Talavera</p>
+  <br><br>
 
   <button onclick="book()">Agendar</button>
   <p id="result"></p>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
   <script>
     const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
-    const SUPABASE_KEY = "TU_PUBLIC_ANON_KEY";
+    const SUPABASE_KEY = "TU_KEY_AQUI";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ------------------------------
-    // Cargar servicios
-    // ------------------------------
+    const ALL_TIMES = ["08:00","10:30","13:00","15:00"];
+
+    // ======================
+    // CARGAR SERVICIOS
+    // ======================
     async function loadServices() {
       const { data } = await db.from("services").select("*");
-      let html = "";
-      if (data) {
-        data.forEach(s => {
-          html += `<option value="${s.id}">${s.name}</option>`;
-        });
-      }
-      document.getElementById("services").innerHTML = html;
+      document.getElementById("services").innerHTML =
+        data.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
     }
 
-    // ------------------------------
-    // Cargar horas disponibles
-    // ------------------------------
+    // ======================
+    // CARGAR HORAS DISPONIBLES
+    // ======================
     async function loadTimes() {
       const date = document.getElementById("date").value;
       if (!date) return;
 
-      const now = new Date();
-      const todayStr = now.toISOString().split("T")[0];
+      // 🔒 Bloqueos por rango
+      const { data: blocks } = await db
+        .from("blocked_times")
+        .select("*")
+        .lte("start_date", date)
+        .gte("end_date", date);
 
-      if (new Date(date) < new Date(todayStr)) {
+      // 🚫 Día completo bloqueado
+      if (blocks?.some(b => b.full_day)) {
         document.getElementById("time").innerHTML = "";
         return;
       }
@@ -101,99 +88,43 @@
         .select("time")
         .eq("date", date);
 
-      const { data: bl } = await db
-        .from("blocked_times")
-        .select("*")
-        .lte("start_date", date)
-        .gte("end_date", date);
+      const blockedHours = blocks
+        ?.filter(b => b.time !== null)
+        .map(b => b.time) || [];
 
-      // 🚫 Día completo bloqueado
-      if (bl && bl.some(b => b.is_full_day)) {
-        document.getElementById("time").innerHTML = "";
-        return;
-      }
-
-      const allTimes = ["08:00", "10:30", "13:00", "15:00"];
       const occupied = [
         ...(ap || []).map(a => a.time),
-        ...(bl || []).filter(b => b.time).map(b => b.time)
+        ...blockedHours
       ];
 
-      const free = allTimes.filter(t => {
-        if (occupied.includes(t)) return false;
+      const free = ALL_TIMES.filter(t => !occupied.includes(t));
 
-        const [h, m] = t.split(":");
-        const slot = new Date(date + "T" + h + ":" + m + ":00");
-
-        if (date === todayStr && slot < now) return false;
-        if (date === todayStr && (slot - now) / 3600000 < 2) return false;
-
-        return true;
-      });
-
-      let html = "";
-      free.forEach(t => html += `<option>${t}</option>`);
-      document.getElementById("time").innerHTML = html;
+      document.getElementById("time").innerHTML =
+        free.map(t => `<option>${t}</option>`).join("");
     }
 
-    // ------------------------------
-    // Agendar cita
-    // ------------------------------
+    // ======================
+    // AGENDAR
+    // ======================
     async function book() {
-      const fileInput = document.getElementById("voucher");
+      const time = document.getElementById("time").value;
 
+      // 🚫 NO PERMITIR AGENDAR SIN HORARIO
+      if (!time) {
+        document.getElementById("result").textContent =
+          "No hay horarios disponibles para esta fecha.";
+        return;
+      }
+
+      const fileInput = document.getElementById("voucher");
       if (fileInput.files.length === 0) {
         document.getElementById("result").textContent =
-          "Debes subir un comprobante antes de agendar.";
-        return;
-      }
-
-      const service_id = document.getElementById("services").value;
-      const client_name = document.getElementById("name").value;
-      const client_email = document.getElementById("email").value;
-      const direccion = document.getElementById("direccion").value;
-      const date = document.getElementById("date").value;
-      const time = document.getElementById("time").value;
-      const payment_method = document.getElementById("payment_method").value;
-
-      const file = fileInput.files[0];
-      const fileName = Date.now() + "_" + file.name;
-
-      const { error: uploadError } = await db
-        .storage
-        .from("yape-comprobantes")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        document.getElementById("result").textContent =
-          "Error al subir comprobante.";
-        return;
-      }
-
-      const { data: publicUrl } = db
-        .storage
-        .from("yape-comprobantes")
-        .getPublicUrl(fileName);
-
-      const { error } = await db.from("appointments").insert({
-        service_id,
-        client_name,
-        client_email,
-        direccion,
-        date,
-        time,
-        payment_method,
-        status: "pending"
-      });
-
-      if (error) {
-        document.getElementById("result").textContent =
-          "Error al registrar la cita.";
+          "Debes subir un comprobante.";
         return;
       }
 
       document.getElementById("result").textContent =
-        "Cita registrada correctamente.";
+        "Cita registrada correctamente";
     }
 
     document.addEventListener("DOMContentLoaded", () => {
