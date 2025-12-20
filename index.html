@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Agendar Cita</title>
@@ -9,7 +9,9 @@
 <h1>Agenda tu cita</h1>
 
 <label>Servicio:</label>
-<select id="services"></select>
+<select id="services">
+  <option value="">Cargando servicios...</option>
+</select>
 <br><br>
 
 <label>Fecha:</label>
@@ -67,18 +69,29 @@ Teléfono: +51972598538 – IG: @predicar.pe
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
+/* ===============================
+   SUPABASE
+================================ */
 const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY = "TU_PUBLIC_ANON_KEY_AQUI";
+const SUPABASE_KEY = "PEGA_AQUI_TU_ANON_PUBLIC_KEY";
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ===============================
    CARGAR SERVICIOS
 ================================ */
 async function loadServices() {
-  const { data, error } = await db.from("services").select("*");
-  if (error) return console.error(error);
+  const { data, error } = await db
+    .from("services")
+    .select("id, name");
 
-  let html = "";
+  if (error) {
+    console.error(error);
+    document.getElementById("services").innerHTML =
+      `<option value="">Error cargando servicios</option>`;
+    return;
+  }
+
+  let html = `<option value="">Selecciona un servicio</option>`;
   data.forEach(s => {
     html += `<option value="${s.id}">${s.name}</option>`;
   });
@@ -87,21 +100,27 @@ async function loadServices() {
 }
 
 /* ===============================
-   CARGAR HORAS DISPONIBLES
+   CARGAR HORARIOS
    (BLOQUEO POR RANGO)
 ================================ */
 async function loadTimes() {
   const date = document.getElementById("date").value;
   const timeSelect = document.getElementById("time");
+
   timeSelect.innerHTML = "";
 
-  if (!date) return;
+  if (!date) {
+    timeSelect.innerHTML =
+      `<option value="">Selecciona una fecha</option>`;
+    return;
+  }
 
   const now = new Date();
   const todayStr = now.toISOString().split("T")[0];
 
   if (new Date(date) < new Date(todayStr)) {
-    timeSelect.innerHTML = `<option value="">Fecha no válida</option>`;
+    timeSelect.innerHTML =
+      `<option value="">Fecha no válida</option>`;
     return;
   }
 
@@ -116,8 +135,7 @@ async function loadTimes() {
     .lte("start_date", date)
     .gte("end_date", date);
 
-  // 🔴 Día bloqueado completo
-  if (bl && bl.some(b => b.is_full_day)) {
+  if (bl && bl.some(b => b.is_full_day === true)) {
     timeSelect.innerHTML =
       `<option value="">Día no disponible</option>`;
     return;
@@ -161,7 +179,7 @@ async function book() {
 
   if (!time) {
     document.getElementById("result").textContent =
-      "Debes seleccionar una hora disponible.";
+      "Debes seleccionar una hora válida.";
     return;
   }
 
@@ -180,16 +198,15 @@ async function book() {
     .upload(fileName, file);
 
   if (uploadError) {
+    console.error(uploadError);
     document.getElementById("result").textContent =
-      "Error al subir comprobante.";
+      uploadError.message;
     return;
   }
 
   const { data: publicUrl } = db.storage
     .from("yape-comprobantes")
     .getPublicUrl(fileName);
-
-  const voucherUrl = publicUrl.publicUrl;
 
   const { error } = await db.from("appointments").insert({
     service_id: document.getElementById("services").value,
@@ -204,13 +221,14 @@ async function book() {
   });
 
   if (error) {
+    console.error(error);
     document.getElementById("result").textContent =
-      "Error al registrar la cita.";
+      error.message;
     return;
   }
 
   await db.from("yape_payments").insert({
-    imagen_url: voucherUrl,
+    imagen_url: publicUrl.publicUrl,
     created_at: new Date().toISOString()
   });
 
