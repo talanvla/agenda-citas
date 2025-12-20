@@ -116,7 +116,7 @@ async function loadTimes() {
   // 🔴 SI EL DÍA ESTÁ BLOQUEADO COMPLETO
   if (bl && bl.some(b => b.is_full_day === true)) {
     document.getElementById("time").innerHTML =
-      `<option>Día no disponible</option>`;
+      `<option> </option>`;
     return;
   }
 
