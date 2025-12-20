@@ -4,222 +4,202 @@
   <title>Agendar Cita</title>
 </head>
 <body>
+  <h1>Agenda tu cita</h1>
 
-<h1>Agenda tu cita</h1>
+  <label>Servicio:</label>
+  <select id="services"></select>
+  <br><br>
 
-<label>Servicio:</label>
-<select id="services"></select>
-<br><br>
+  <label>Fecha:</label>
+  <input type="date" id="date">
+  <br><br>
 
-<label>Fecha:</label>
-<input type="date" id="date">
-<br><br>
+  <label>Hora:</label>
+  <select id="time"></select>
+  <br><br>
 
-<label>Hora:</label>
-<select id="time"></select>
-<br><br>
+  <label>Nombre:</label>
+  <input type="text" id="name">
+  <br><br>
 
-<label>Nombre:</label>
-<input type="text" id="name">
-<br><br>
+  <label>Email:</label>
+  <input type="email" id="email">
+  <br><br>
 
-<label>Email:</label>
-<input type="email" id="email">
-<br><br>
+  <label>Dirección de escaneo:</label>
+  <input type="text" id="direccion">
+  <br><br>
 
-<label>Dirección de escaneo:</label>
-<input type="text" id="direccion">
-<br><br>
+  <label>Método de pago:</label>
+  <select id="payment_method">
+    <option value="yape">Yape</option>
+    <option value="plin">Plin</option>
+  </select>
+  <br><br>
 
-<label>Método de pago:</label>
-<select id="payment_method">
-  <option value="yape">Yape</option>
-  <option value="plin">Plin</option>
-</select>
-<br><br>
+  <label>Subir comprobante (imagen):</label>
+  <input type="file" id="voucher">
 
-<label>Subir comprobante (imagen):</label>
-<input type="file" id="voucher">
+  <h3>Distritos sin costo adicional:</h3>
+  <p>
+    San Isidro, San Borja, Miraflores,<br>
+    San Miguel, Magdalena, Jesús María, Surco
+  </p>
 
-<h3>Distritos sin costo adicional:</h3>
-<p>
-San Isidro, San Borja, Miraflores, <br>
-San Miguel, Magdalena, Jesús María, Surco
-</p>
+  <h4>Consideraciones</h4>
+  <p>
+    Para reservar la cita se debe abonar S/100 <br>
+    como garantía al yape/plin 955507470 de Andres Talavera.<br>
+    La diferencia al culminar el servicio.<br><br>
+    Teléfono de contacto: +51972598538, IG: @predicar.pe<br>
+    Para regalarte revisión de dueños, asesorías y más
+  </p>
 
-<h4>Consideraciones</h4>
-<p>
-Para reservar la cita se debe abonar S/100 <br>
-como garantia al yape/plin 955507470 de Andres Talavera.
-<br>
-La diferencia al culminar el servicio. <br><br>
-Telefono de contacto: +51972598538, IG: @predicar.pe<br>
-Para regalarte revisión de dueños, asesorías y más
-</p>
+  <p>Atentamente</p>
+  <p>Ingeniero Mecatrónico - Andres Talavera</p>
 
-<p>Atentamente</p>
-<p>Ingeniero Mecatronico - Andres Talavera</p>
+  <button onclick="book()">Agendar</button>
+  <p id="result"></p>
 
-<button onclick="book()">Agendar</button>
-<p id="result"></p>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
+    const SUPABASE_KEY = "TU_PUBLIC_ANON_KEY";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    // ------------------------------
+    // Cargar servicios
+    // ------------------------------
+    async function loadServices() {
+      const { data } = await db.from("services").select("*");
+      let html = "";
+      if (data) {
+        data.forEach(s => {
+          html += `<option value="${s.id}">${s.name}</option>`;
+        });
+      }
+      document.getElementById("services").innerHTML = html;
+    }
 
-<script>
-const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // ------------------------------
+    // Cargar horas disponibles
+    // ------------------------------
+    async function loadTimes() {
+      const date = document.getElementById("date").value;
+      if (!date) return;
 
-/* ===============================
-   CARGAR SERVICIOS
-================================ */
-async function loadServices() {
-  const { data, error } = await db.from("services").select("*");
-  if (error) {
-    console.error(error);
-    return;
-  }
+      const now = new Date();
+      const todayStr = now.toISOString().split("T")[0];
 
-  let html = "";
-  data.forEach(s => {
-    html += `<option value="${s.id}">${s.name}</option>`;
-  });
+      if (new Date(date) < new Date(todayStr)) {
+        document.getElementById("time").innerHTML = "";
+        return;
+      }
 
-  document.getElementById("services").innerHTML = html;
-}
+      const { data: ap } = await db
+        .from("appointments")
+        .select("time")
+        .eq("date", date);
 
-/* ===============================
-   CARGAR HORAS DISPONIBLES
-================================ */
-async function loadTimes() {
-  const date = document.getElementById("date").value;
-  if (!date) return;
+      const { data: bl } = await db
+        .from("blocked_times")
+        .select("*")
+        .lte("start_date", date)
+        .gte("end_date", date);
 
-  const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
+      // 🚫 Día completo bloqueado
+      if (bl && bl.some(b => b.is_full_day)) {
+        document.getElementById("time").innerHTML = "";
+        return;
+      }
 
-  if (new Date(date) < new Date(todayStr)) {
-    document.getElementById("time").innerHTML = "";
-    return;
-  }
+      const allTimes = ["08:00", "10:30", "13:00", "15:00"];
+      const occupied = [
+        ...(ap || []).map(a => a.time),
+        ...(bl || []).filter(b => b.time).map(b => b.time)
+      ];
 
-  const { data: ap } = await db
-    .from("appointments")
-    .select("time")
-    .eq("date", date);
+      const free = allTimes.filter(t => {
+        if (occupied.includes(t)) return false;
 
-  const { data: bl } = await db
-    .from("blocked_times")
-    .select("time, is_full_day")
-    .eq("date", date);
+        const [h, m] = t.split(":");
+        const slot = new Date(date + "T" + h + ":" + m + ":00");
 
-  // 🔴 SI EL DÍA ESTÁ BLOQUEADO COMPLETO
-  if (bl && bl.some(b => b.is_full_day === true)) {
-    document.getElementById("time").innerHTML =
-      `<option> </option>`;
-    return;
-  }
+        if (date === todayStr && slot < now) return false;
+        if (date === todayStr && (slot - now) / 3600000 < 2) return false;
 
-  const allTimes = ["08:00","10:30","13:00","15:00"];
+        return true;
+      });
 
-  const occupied = [
-    ...(ap || []).map(a => a.time),
-    ...(bl || []).filter(b => !b.is_full_day).map(b => b.time)
-  ];
+      let html = "";
+      free.forEach(t => html += `<option>${t}</option>`);
+      document.getElementById("time").innerHTML = html;
+    }
 
-  const free = allTimes.filter(t => {
-    if (occupied.includes(t)) return false;
+    // ------------------------------
+    // Agendar cita
+    // ------------------------------
+    async function book() {
+      const fileInput = document.getElementById("voucher");
 
-    const [h, m] = t.split(":");
-    const slot = new Date(date + "T" + h + ":" + m + ":00");
+      if (fileInput.files.length === 0) {
+        document.getElementById("result").textContent =
+          "Debes subir un comprobante antes de agendar.";
+        return;
+      }
 
-    if (date === todayStr && slot < now) return false;
+      const service_id = document.getElementById("services").value;
+      const client_name = document.getElementById("name").value;
+      const client_email = document.getElementById("email").value;
+      const direccion = document.getElementById("direccion").value;
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
+      const payment_method = document.getElementById("payment_method").value;
 
-    const diffHours = (slot - now) / 3600000;
-    if (date === todayStr && diffHours < 2) return false;
+      const file = fileInput.files[0];
+      const fileName = Date.now() + "_" + file.name;
 
-    return true;
-  });
+      const { error: uploadError } = await db
+        .storage
+        .from("yape-comprobantes")
+        .upload(fileName, file);
 
-  let html = "";
-  free.forEach(t => html += `<option value="${t}">${t}</option>`);
-  document.getElementById("time").innerHTML = html;
-}
+      if (uploadError) {
+        document.getElementById("result").textContent =
+          "Error al subir comprobante.";
+        return;
+      }
 
-/* ===============================
-   AGENDAR CITA
-================================ */
-async function book() {
-  const fileInput = document.getElementById("voucher");
+      const { data: publicUrl } = db
+        .storage
+        .from("yape-comprobantes")
+        .getPublicUrl(fileName);
 
-  if (fileInput.files.length === 0) {
-    document.getElementById("result").textContent =
-      "Debes subir un comprobante antes de agendar.";
-    return;
-  }
+      const { error } = await db.from("appointments").insert({
+        service_id,
+        client_name,
+        client_email,
+        direccion,
+        date,
+        time,
+        payment_method,
+        status: "pending"
+      });
 
-  const service_id = document.getElementById("services").value;
-  const client_name = document.getElementById("name").value;
-  const client_email = document.getElementById("email").value;
-  const direccion = document.getElementById("direccion").value;
-  const date = document.getElementById("date").value;
-  const time = document.getElementById("time").value;
-  const payment_method = document.getElementById("payment_method").value;
+      if (error) {
+        document.getElementById("result").textContent =
+          "Error al registrar la cita.";
+        return;
+      }
 
-  const file = fileInput.files[0];
-  const fileName = Date.now() + "_" + file.name;
+      document.getElementById("result").textContent =
+        "Cita registrada correctamente.";
+    }
 
-  const { error: uploadError } = await db.storage
-    .from("yape-comprobantes")
-    .upload(fileName, file);
-
-  if (uploadError) {
-    document.getElementById("result").textContent =
-      "Error al subir comprobante: " + uploadError.message;
-    return;
-  }
-
-  const { data: publicUrl } = db.storage
-    .from("yape-comprobantes")
-    .getPublicUrl(fileName);
-
-  const voucherUrl = publicUrl.publicUrl;
-
-  const { error: citaError } = await db.from("appointments").insert({
-    service_id,
-    client_name,
-    client_email,
-    direccion,
-    date,
-    time,
-    payment_method,
-    status: "pending",
-    created_at: new Date().toISOString()
-  });
-
-  if (citaError) {
-    document.getElementById("result").textContent =
-      "Error al registrar cita: " + citaError.message;
-    return;
-  }
-
-  await db.from("yape_payments").insert({
-    imagen_url: voucherUrl,
-    created_at: new Date().toISOString()
-  });
-
-  document.getElementById("result").textContent =
-    "Cita registrada correctamente";
-}
-
-/* ===============================
-   INIT
-================================ */
-document.addEventListener("DOMContentLoaded", () => {
-  loadServices();
-  document.getElementById("date").onchange = loadTimes;
-});
-</script>
-
+    document.addEventListener("DOMContentLoaded", () => {
+      loadServices();
+      document.getElementById("date").addEventListener("change", loadTimes);
+    });
+  </script>
 </body>
 </html>
