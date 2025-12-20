@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Agendar Cita</title>
 </head>
 <body>
@@ -16,7 +17,9 @@
 <br><br>
 
 <label>Hora:</label>
-<select id="time"></select>
+<select id="time">
+  <option value="">Selecciona una fecha</option>
+</select>
 <br><br>
 
 <label>Nombre:</label>
@@ -40,25 +43,23 @@
 
 <label>Subir comprobante (imagen):</label>
 <input type="file" id="voucher">
+<br><br>
 
 <h3>Distritos sin costo adicional:</h3>
 <p>
-San Isidro, San Borja, Miraflores, <br>
+San Isidro, San Borja, Miraflores,<br>
 San Miguel, Magdalena, Jesús María, Surco
 </p>
 
 <h4>Consideraciones</h4>
 <p>
-Para reservar la cita se debe abonar S/100 <br>
-como garantia al yape/plin 955507470 de Andres Talavera.
-<br>
-La diferencia al culminar el servicio. <br><br>
-Telefono de contacto: +51972598538, IG: @predicar.pe<br>
-Para regalarte revisión de dueños, asesorías y más
+Para reservar la cita se debe abonar S/100<br>
+como garantía al yape/plin 955507470 de Andres Talavera.<br>
+La diferencia al culminar el servicio.<br><br>
+Teléfono: +51972598538 – IG: @predicar.pe
 </p>
 
-<p>Atentamente</p>
-<p>Ingeniero Mecatronico - Andres Talavera</p>
+<p>Ingeniero Mecatrónico – Andres Talavera</p>
 
 <button onclick="book()">Agendar</button>
 <p id="result"></p>
@@ -67,7 +68,7 @@ Para regalarte revisión de dueños, asesorías y más
 
 <script>
 const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+const SUPABASE_KEY = "TU_PUBLIC_ANON_KEY_AQUI";
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ===============================
@@ -75,10 +76,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 ================================ */
 async function loadServices() {
   const { data, error } = await db.from("services").select("*");
-  if (error) {
-    console.error(error);
-    return;
-  }
+  if (error) return console.error(error);
 
   let html = "";
   data.forEach(s => {
@@ -90,16 +88,20 @@ async function loadServices() {
 
 /* ===============================
    CARGAR HORAS DISPONIBLES
+   (BLOQUEO POR RANGO)
 ================================ */
 async function loadTimes() {
   const date = document.getElementById("date").value;
+  const timeSelect = document.getElementById("time");
+  timeSelect.innerHTML = "";
+
   if (!date) return;
 
   const now = new Date();
   const todayStr = now.toISOString().split("T")[0];
 
   if (new Date(date) < new Date(todayStr)) {
-    document.getElementById("time").innerHTML = "";
+    timeSelect.innerHTML = `<option value="">Fecha no válida</option>`;
     return;
   }
 
@@ -110,13 +112,14 @@ async function loadTimes() {
 
   const { data: bl } = await db
     .from("blocked_times")
-    .select("time, is_full_day")
-    .eq("date", date);
+    .select("time, is_full_day, start_date, end_date")
+    .lte("start_date", date)
+    .gte("end_date", date);
 
-  // 🔴 SI EL DÍA ESTÁ BLOQUEADO COMPLETO
-  if (bl && bl.some(b => b.is_full_day === true)) {
-    document.getElementById("time").innerHTML =
-      `<option>Día no disponible</option>`;
+  // 🔴 Día bloqueado completo
+  if (bl && bl.some(b => b.is_full_day)) {
+    timeSelect.innerHTML =
+      `<option value="">Día no disponible</option>`;
     return;
   }
 
@@ -130,9 +133,7 @@ async function loadTimes() {
   const free = allTimes.filter(t => {
     if (occupied.includes(t)) return false;
 
-    const [h, m] = t.split(":");
-    const slot = new Date(date + "T" + h + ":" + m + ":00");
-
+    const slot = new Date(`${date}T${t}:00`);
     if (date === todayStr && slot < now) return false;
 
     const diffHours = (slot - now) / 3600000;
@@ -141,30 +142,35 @@ async function loadTimes() {
     return true;
   });
 
-  let html = "";
-  free.forEach(t => html += `<option value="${t}">${t}</option>`);
-  document.getElementById("time").innerHTML = html;
+  if (free.length === 0) {
+    timeSelect.innerHTML =
+      `<option value="">Sin horarios disponibles</option>`;
+    return;
+  }
+
+  free.forEach(t => {
+    timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
+  });
 }
 
 /* ===============================
    AGENDAR CITA
 ================================ */
 async function book() {
-  const fileInput = document.getElementById("voucher");
+  const time = document.getElementById("time").value;
 
-  if (fileInput.files.length === 0) {
+  if (!time) {
     document.getElementById("result").textContent =
-      "Debes subir un comprobante antes de agendar.";
+      "Debes seleccionar una hora disponible.";
     return;
   }
 
-  const service_id = document.getElementById("services").value;
-  const client_name = document.getElementById("name").value;
-  const client_email = document.getElementById("email").value;
-  const direccion = document.getElementById("direccion").value;
-  const date = document.getElementById("date").value;
-  const time = document.getElementById("time").value;
-  const payment_method = document.getElementById("payment_method").value;
+  const fileInput = document.getElementById("voucher");
+  if (fileInput.files.length === 0) {
+    document.getElementById("result").textContent =
+      "Debes subir el comprobante.";
+    return;
+  }
 
   const file = fileInput.files[0];
   const fileName = Date.now() + "_" + file.name;
@@ -175,7 +181,7 @@ async function book() {
 
   if (uploadError) {
     document.getElementById("result").textContent =
-      "Error al subir comprobante: " + uploadError.message;
+      "Error al subir comprobante.";
     return;
   }
 
@@ -185,21 +191,21 @@ async function book() {
 
   const voucherUrl = publicUrl.publicUrl;
 
-  const { error: citaError } = await db.from("appointments").insert({
-    service_id,
-    client_name,
-    client_email,
-    direccion,
-    date,
+  const { error } = await db.from("appointments").insert({
+    service_id: document.getElementById("services").value,
+    client_name: document.getElementById("name").value,
+    client_email: document.getElementById("email").value,
+    direccion: document.getElementById("direccion").value,
+    date: document.getElementById("date").value,
     time,
-    payment_method,
+    payment_method: document.getElementById("payment_method").value,
     status: "pending",
     created_at: new Date().toISOString()
   });
 
-  if (citaError) {
+  if (error) {
     document.getElementById("result").textContent =
-      "Error al registrar cita: " + citaError.message;
+      "Error al registrar la cita.";
     return;
   }
 
@@ -209,7 +215,7 @@ async function book() {
   });
 
   document.getElementById("result").textContent =
-    "Cita registrada correctamente";
+    "✅ Cita registrada correctamente";
 }
 
 /* ===============================
@@ -217,7 +223,7 @@ async function book() {
 ================================ */
 document.addEventListener("DOMContentLoaded", () => {
   loadServices();
-  document.getElementById("date").onchange = loadTimes;
+  document.getElementById("date").addEventListener("change", loadTimes);
 });
 </script>
 
