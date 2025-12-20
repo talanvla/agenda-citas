@@ -111,8 +111,7 @@ async function loadTimes() {
   const { data: bl } = await db
     .from("blocked_times")
     .select("time, is_full_day",start_date,end_date)
-.lte("start_date",date)
-.gte("end_date",date)
+.or(`and(start_date.lte.${date},end_date.gte.${date})`);
 
     //.eq("date", date);
 
