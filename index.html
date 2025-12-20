@@ -89,7 +89,7 @@ async function loadServices() {
 }
 
 /* ===============================
-   CARGAR HORAS DISPONIBLES
+   CARGAR HORAS (Rango de fechas)
 ================================ */
 async function loadTimes() {
   const date = document.getElementById("date").value;
@@ -110,8 +110,11 @@ async function loadTimes() {
 
   const { data: bl } = await db
     .from("blocked_times")
-    .select("time, is_full_day")
-    .eq("date", date);
+    .select("time, is_full_day",start_date,end_date)
+.lte("start_date",date)
+.gte("end_date",date)
+
+    //.eq("date", date);
 
   // 🔴 SI EL DÍA ESTÁ BLOQUEADO COMPLETO
   if (bl && bl.some(b => b.is_full_day === true)) {
