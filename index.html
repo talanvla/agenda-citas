@@ -16,7 +16,9 @@
 <br><br>
 
 <label>Hora:</label>
-<select id="time"></select>
+<select id="time">
+  <option value="">Selecciona una fecha</option>
+</select>
 <br><br>
 
 <label>Nombre:</label>
@@ -40,6 +42,7 @@
 
 <label>Subir comprobante (imagen):</label>
 <input type="file" id="voucher">
+<br><br>
 
 <h3>Distritos sin costo adicional:</h3>
 <p>
@@ -67,7 +70,7 @@ Para regalarte revisión de dueños, asesorías y más
 
 <script>
 const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+const SUPABASE_KEY = "TU_PUBLIC_ANON_KEY_AQUI"; // reemplaza con tu anon key
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ===============================
@@ -76,49 +79,44 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 async function loadServices() {
   const { data, error } = await db.from("services").select("*");
   if (error) {
-    console.error(error);
+    console.error("Error cargando servicios:", error);
     return;
   }
-
   let html = "";
-  data.forEach(s => {
-    html += `<option value="${s.id}">${s.name}</option>`;
-  });
-
+  data.forEach(s => html += `<option value="${s.id}">${s.name}</option>`);
   document.getElementById("services").innerHTML = html;
 }
 
 /* ===============================
-   CARGAR HORAS (Rango de fechas)
+   CARGAR HORAS DISPONIBLES
+   Bloqueo por rango start_date → end_date
 ================================ */
 async function loadTimes() {
   const date = document.getElementById("date").value;
+  const timeSelect = document.getElementById("time");
+  timeSelect.innerHTML = "";
+
   if (!date) return;
 
   const now = new Date();
   const todayStr = now.toISOString().split("T")[0];
-
   if (new Date(date) < new Date(todayStr)) {
-    document.getElementById("time").innerHTML = "";
+    timeSelect.innerHTML = `<option value="">Fecha no válida</option>`;
     return;
   }
 
-  const { data: ap } = await db
-    .from("appointments")
-    .select("time")
-    .eq("date", date);
+  // Horas ocupadas por citas
+  const { data: ap } = await db.from("appointments").select("time").eq("date", date);
 
+  // Bloqueos por rango de fechas
   const { data: bl } = await db
     .from("blocked_times")
-    .select("time, is_full_day,start_date,end_date")
-.or(`and(start_date.lte.${date},end_date.gte.${date})`);
+    .select("time, is_full_day, start_date, end_date")
+    .or(`and(start_date.lte.${date},end_date.gte.${date})`);
 
-    //.eq("date", date);
-
-  // 🔴 SI EL DÍA ESTÁ BLOQUEADO COMPLETO
-  if (bl && bl.some(b => b.is_full_day === true)) {
-    document.getElementById("time").innerHTML =
-      `<option>Día no disponible</option>`;
+  // Si algún bloqueo es full day, el día no disponible
+  if (bl && bl.some(b => b.is_full_day)) {
+    timeSelect.innerHTML = `<option value="">Día no disponible</option>`;
     return;
   }
 
@@ -129,23 +127,16 @@ async function loadTimes() {
     ...(bl || []).filter(b => !b.is_full_day).map(b => b.time)
   ];
 
-  const free = allTimes.filter(t => {
-    if (occupied.includes(t)) return false;
+  const free = allTimes.filter(t => !occupied.includes(t));
 
-    const [h, m] = t.split(":");
-    const slot = new Date(date + "T" + h + ":" + m + ":00");
+  if (free.length === 0) {
+    timeSelect.innerHTML = `<option value="">Sin horarios disponibles</option>`;
+    return;
+  }
 
-    if (date === todayStr && slot < now) return false;
-
-    const diffHours = (slot - now) / 3600000;
-    if (date === todayStr && diffHours < 2) return false;
-
-    return true;
+  free.forEach(t => {
+    timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
   });
-
-  let html = "";
-  free.forEach(t => html += `<option value="${t}">${t}</option>`);
-  document.getElementById("time").innerHTML = html;
 }
 
 /* ===============================
@@ -153,10 +144,8 @@ async function loadTimes() {
 ================================ */
 async function book() {
   const fileInput = document.getElementById("voucher");
-
   if (fileInput.files.length === 0) {
-    document.getElementById("result").textContent =
-      "Debes subir un comprobante antes de agendar.";
+    document.getElementById("result").textContent = "Debes subir un comprobante antes de agendar.";
     return;
   }
 
@@ -168,23 +157,25 @@ async function book() {
   const time = document.getElementById("time").value;
   const payment_method = document.getElementById("payment_method").value;
 
+  if (!time) {
+    document.getElementById("result").textContent = "Debes seleccionar una hora disponible.";
+    return;
+  }
+
   const file = fileInput.files[0];
   const fileName = Date.now() + "_" + file.name;
 
   const { error: uploadError } = await db.storage
     .from("yape-comprobantes")
     .upload(fileName, file);
-
   if (uploadError) {
-    document.getElementById("result").textContent =
-      "Error al subir comprobante: " + uploadError.message;
+    document.getElementById("result").textContent = "Error al subir comprobante: " + uploadError.message;
     return;
   }
 
   const { data: publicUrl } = db.storage
     .from("yape-comprobantes")
     .getPublicUrl(fileName);
-
   const voucherUrl = publicUrl.publicUrl;
 
   const { error: citaError } = await db.from("appointments").insert({
@@ -198,10 +189,8 @@ async function book() {
     status: "pending",
     created_at: new Date().toISOString()
   });
-
   if (citaError) {
-    document.getElementById("result").textContent =
-      "Error al registrar cita: " + citaError.message;
+    document.getElementById("result").textContent = "Error al registrar cita: " + citaError.message;
     return;
   }
 
@@ -210,8 +199,7 @@ async function book() {
     created_at: new Date().toISOString()
   });
 
-  document.getElementById("result").textContent =
-    "Cita registrada correctamente";
+  document.getElementById("result").textContent = "✅ Cita registrada correctamente";
 }
 
 /* ===============================
