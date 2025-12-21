@@ -19,7 +19,8 @@
 <select id="time">
   <option value="">Selecciona una fecha</option>
 </select>
-<br><br>
+<p id="available-msg" style="font-weight:bold;"></p>
+<br>
 
 <label>Nombre:</label>
 <input type="text" id="name">
@@ -44,6 +45,25 @@
 <input type="file" id="voucher">
 <br><br>
 
+<h3>Distritos sin costo adicional:</h3>
+<p>
+San Isidro, San Borja, Miraflores, <br>
+San Miguel, Magdalena, Jesús María, Surco
+</p>
+
+<h4>Consideraciones</h4>
+<p>
+Para reservar la cita se debe abonar S/100 <br>
+como garantia al yape/plin 955507470 de Andres Talavera.
+<br>
+La diferencia al culminar el servicio. <br><br>
+Telefono de contacto: +51972598538, IG: @predicar.pe<br>
+Para regalarte revisión de dueños, asesorías y más
+</p>
+
+<p>Atentamente</p>
+<p>Ingeniero Mecatronico - Andres Talavera</p>
+
 <button onclick="book()">Agendar</button>
 <p id="result"></p>
 
@@ -63,7 +83,9 @@ async function loadServices() {
 async function loadTimes() {
   const date = document.getElementById("date").value;
   const timeSelect = document.getElementById("time");
+  const availableMsg = document.getElementById("available-msg");
   timeSelect.innerHTML = "";
+  availableMsg.textContent = "";
 
   if (!date) return;
 
@@ -84,23 +106,23 @@ async function loadTimes() {
 
   if (blockedTimes?.some(b => b.is_full_day)) {
     timeSelect.innerHTML = `<option value="">Día no disponible</option>`;
+    availableMsg.textContent = "0 horarios disponibles";
     return;
   }
 
   // Normalizar horas ocupadas a HH:MM
   const occupied = [
-    ...(appointments || []).map(a => a.time.slice(0,5)),
+    ...(appointments || []).map(a => a.time.split(":").slice(0,2).join(":")),
     ...(blockedTimes || []).filter(b => !b.is_full_day).map(b => b.time)
   ];
 
   const free = allTimes.filter(t => {
     if (occupied.includes(t)) return false;
 
-    // Solo aplicar regla de 2 horas si la fecha es hoy
+    // Regla de 2 horas para hoy
     const todayStr = now.toISOString().slice(0,10);
     if (date === todayStr) {
       const [hour, minute] = t.split(":").map(Number);
-      // Fecha exacta en hora local
       const appointmentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0);
       const diffHours = (appointmentDate - now) / (1000*60*60);
       if (diffHours < 2) return false;
@@ -111,12 +133,15 @@ async function loadTimes() {
 
   if (free.length === 0) {
     timeSelect.innerHTML = `<option value="">Sin horarios disponibles</option>`;
+    availableMsg.textContent = "0 horarios disponibles";
     return;
   }
 
   free.forEach(t => {
     timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
   });
+
+  availableMsg.textContent = `${free.length} horarios disponibles`;
 }
 
 async function book() {
