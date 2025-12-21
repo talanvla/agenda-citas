@@ -53,15 +53,15 @@ San Miguel, Magdalena, Jesús María, Surco
 <h4>Consideraciones</h4>
 <p>
 Para reservar la cita se debe abonar S/100 <br>
-como garantia al yape/plin 955507470 de Andres Talavera.
+como garantía al yape/plin 955507470 de Andres Talavera.
 <br>
 La diferencia al culminar el servicio. <br><br>
-Telefono de contacto: +51972598538, IG: @predicar.pe<br>
+Teléfono de contacto: +51972598538, IG: @predicar.pe<br>
 Para regalarte revisión de dueños, asesorías y más
 </p>
 
 <p>Atentamente</p>
-<p>Ingeniero Mecatronico - Andres Talavera</p>
+<p>Ingeniero Mecatrónico - Andres Talavera</p>
 
 <button onclick="book()">Agendar</button>
 <p id="result"></p>
@@ -70,12 +70,8 @@ Para regalarte revisión de dueños, asesorías y más
 
 <script>
 const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ"; // reemplaza con tu anon key
+const SUPABASE_KEY = "YOUR_ANON_KEY"; // Reemplaza con tu anon key
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/*"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ" */
-
-
 
 /* ===============================
    CARGAR SERVICIOS
@@ -93,7 +89,6 @@ async function loadServices() {
 
 /* ===============================
    CARGAR HORAS DISPONIBLES
-   Bloqueo por rango start_date → end_date
 ================================ */
 async function loadTimes() {
   const date = document.getElementById("date").value;
@@ -109,41 +104,42 @@ async function loadTimes() {
     return;
   }
 
-  // Horas ocupadas por citas
- // const { data: ap } = await db.from("appointments").select("time").eq("date", date);
+  const allTimes = ["08:00","10:30","13:00","15:00"];
 
-//Prueba bloqueo de horas
+  // 🔹 Obtener citas existentes de ese día
+  const { data: appointments, error: apError } = await db
+    .from("appointments")
+    .select("time")
+    .eq("date", date);  // date es tipo time/string
 
-const startOfDay = date + "T00:00:00.000Z";
-const endOfDay   = date + "T23:59:59.999Z";
+  if (apError) {
+    console.error("Error cargando citas:", apError);
+    timeSelect.innerHTML = `<option value="">Error al cargar citas</option>`;
+    return;
+  }
 
-const { data: ap } = await db
-  .from("appointments")
-  .select("time")
-  .gte("date", startOfDay)
-  .lte("date", endOfDay);
-
-
-
-
-
-  // Bloqueos por rango de fechas
-  const { data: bl } = await db
+  // 🔹 Obtener bloqueos
+  const { data: blockedTimes, error: blError } = await db
     .from("blocked_times")
     .select("time, is_full_day, start_date, end_date")
     .or(`and(start_date.lte.${date},end_date.gte.${date})`);
 
-  // Si algún bloqueo es full day, el día no disponible
-  if (bl && bl.some(b => b.is_full_day)) {
+  if (blError) {
+    console.error("Error cargando bloqueos:", blError);
+    timeSelect.innerHTML = `<option value="">Error al cargar bloqueos</option>`;
+    return;
+  }
+
+  // Si hay bloqueo de día completo
+  if (blockedTimes.some(b => b.is_full_day)) {
     timeSelect.innerHTML = `<option value="">Día no disponible</option>`;
     return;
   }
 
-  const allTimes = ["08:00","10:30","13:00","15:00"];
-
+  // Combinar citas y bloqueos parciales
   const occupied = [
-    ...(ap || []).map(a => a.time),
-    ...(bl || []).filter(b => !b.is_full_day).map(b => b.time)
+    ...(appointments || []).map(a => a.time),
+    ...(blockedTimes || []).filter(b => !b.is_full_day).map(b => b.time)
   ];
 
   const free = allTimes.filter(t => !occupied.includes(t));
@@ -181,6 +177,7 @@ async function book() {
     return;
   }
 
+  // Subir comprobante
   const file = fileInput.files[0];
   const fileName = Date.now() + "_" + file.name;
 
@@ -197,6 +194,7 @@ async function book() {
     .getPublicUrl(fileName);
   const voucherUrl = publicUrl.publicUrl;
 
+  // Insertar cita
   const { error: citaError } = await db.from("appointments").insert({
     service_id,
     client_name,
@@ -213,7 +211,7 @@ async function book() {
     return;
   }
 
-//Guardar comprobante
+  // Guardar comprobante
   await db.from("yape_payments").insert({
     imagen_url: voucherUrl,
     created_at: new Date().toISOString()
@@ -221,12 +219,9 @@ async function book() {
 
   document.getElementById("result").textContent = "✅ Cita registrada correctamente";
 
-
-/*Bloquea horario seleccionado*/
-await loadTimes();
-document.getElementById("time").value = "";
-
-
+  // 🔹 Bloquear horario inmediatamente
+  await loadTimes();
+  document.getElementById("time").value = "";
 }
 
 /* ===============================
