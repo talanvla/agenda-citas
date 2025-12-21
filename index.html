@@ -110,7 +110,22 @@ async function loadTimes() {
   }
 
   // Horas ocupadas por citas
-  const { data: ap } = await db.from("appointments").select("time").eq("date", date);
+ // const { data: ap } = await db.from("appointments").select("time").eq("date", date);
+
+//Prueba bloqueo de horas
+
+const startOfDay = date + "T00:00:00.000Z";
+const endOfDay   = date + "T23:59:59.999Z";
+
+const { data: ap } = await db
+  .from("appointments")
+  .select("time")
+  .gte("date", startOfDay)
+  .lte("date", endOfDay);
+
+
+
+
 
   // Bloqueos por rango de fechas
   const { data: bl } = await db
