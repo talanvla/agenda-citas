@@ -1,3 +1,10 @@
+Tengo un codigo para pagina web con vercel y supabase. 
+Es para agendar citas de mi negocio online.
+Quiero que luego de cada agendamiento, me llegue un mail.
+
+Aca te dejo el codigo para que me digas si debo actualizar algo, que actualizar y que otra cosa faltaria
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -100,7 +107,7 @@ Para regalarte revisión de dueños, asesorías y más
       const { data: ap } = await db.from("appointments").select("*").eq("date", date);
       const { data: bl } = await db.from("blocked_times").select("*").eq("date", date);
 
-      const allTimes = ["08:00","10:30","13:00","15:00"]; //horarios para atencion
+      const allTimes = ["09:00","11:00","13:00","15:00","17:00"];
       const occupied = [...ap.map(a=>a.time), ...bl.map(b=>b.time)];
 
       const free = allTimes.filter(t => {
