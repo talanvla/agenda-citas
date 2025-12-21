@@ -70,7 +70,8 @@ Para regalarte revisión de dueños, asesorías y más
 
 <script>
 const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY = "YOUR_ANON_KEY"; // Reemplaza con tu anon key
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ===============================
@@ -89,6 +90,7 @@ async function loadServices() {
 
 /* ===============================
    CARGAR HORAS DISPONIBLES
+   Validación: citas existentes, bloqueos y 2h antes
 ================================ */
 async function loadTimes() {
   const date = document.getElementById("date").value;
@@ -106,11 +108,11 @@ async function loadTimes() {
 
   const allTimes = ["08:00","10:30","13:00","15:00"];
 
-  // 🔹 Obtener citas existentes de ese día
+  // 🔹 Obtener citas existentes para la fecha seleccionada
   const { data: appointments, error: apError } = await db
     .from("appointments")
     .select("time")
-    .eq("date", date);  // date es tipo time/string
+    .eq("date", date);
 
   if (apError) {
     console.error("Error cargando citas:", apError);
@@ -118,7 +120,7 @@ async function loadTimes() {
     return;
   }
 
-  // 🔹 Obtener bloqueos
+  // 🔹 Obtener bloqueos (por hora o full day)
   const { data: blockedTimes, error: blError } = await db
     .from("blocked_times")
     .select("time, is_full_day, start_date, end_date")
@@ -130,19 +132,30 @@ async function loadTimes() {
     return;
   }
 
-  // Si hay bloqueo de día completo
+  // 🔹 Si hay bloqueo full day
   if (blockedTimes.some(b => b.is_full_day)) {
     timeSelect.innerHTML = `<option value="">Día no disponible</option>`;
     return;
   }
 
-  // Combinar citas y bloqueos parciales
+  // 🔹 Calcular horas ocupadas
   const occupied = [
     ...(appointments || []).map(a => a.time),
     ...(blockedTimes || []).filter(b => !b.is_full_day).map(b => b.time)
   ];
 
-  const free = allTimes.filter(t => !occupied.includes(t));
+  // 🔹 Filtrar horas libres considerando 2 horas de anticipación
+  const free = allTimes.filter(t => {
+    if (occupied.includes(t)) return false;
+
+    const [hour, minute] = t.split(":").map(Number);
+    const appointmentDate = new Date(date);
+    appointmentDate.setHours(hour, minute, 0, 0);
+
+    const diffHours = (appointmentDate - now) / (1000 * 60 * 60);
+
+    return diffHours >= 2; // mostrar solo si faltan 2h o más
+  });
 
   if (free.length === 0) {
     timeSelect.innerHTML = `<option value="">Sin horarios disponibles</option>`;
@@ -219,7 +232,7 @@ async function book() {
 
   document.getElementById("result").textContent = "✅ Cita registrada correctamente";
 
-  // 🔹 Bloquear horario inmediatamente
+  // 🔹 Actualizar horarios disponibles
   await loadTimes();
   document.getElementById("time").value = "";
 }
