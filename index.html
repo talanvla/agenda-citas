@@ -92,7 +92,7 @@ async function loadServices() {
 
 /* ===============================
    CARGAR HORARIOS DISPONIBLES
-   (VALIDADO CON SUPABASE)
+   (VALIDADO SOLO CON appointments)
 ================================ */
 async function loadTimes() {
   const date = document.getElementById("date").value;
@@ -101,10 +101,8 @@ async function loadTimes() {
 
   if (!date) return;
 
-  // Horarios del negocio
   const allTimes = ["08:00", "10:30", "13:00", "15:00"];
 
-  // Traer citas reservadas ESE DÍA (date es DATE)
   const { data: appointments, error } = await db
     .from("appointments")
     .select("time")
@@ -112,16 +110,12 @@ async function loadTimes() {
 
   if (error) {
     console.error("Error cargando citas:", error);
-    timeSelect.innerHTML = `<option value="">Error al cargar horarios</option>`;
+    timeSelect.innerHTML = `<option value="">Error cargando horarios</option>`;
     return;
   }
 
-  // Normalizar horas ocupadas a HH:MM
-  const occupiedTimes = (appointments || []).map(a =>
-    a.time.trim().slice(0, 5)
-  );
+  const occupiedTimes = (appointments || []).map(a => a.time);
 
-  // Filtrar horarios disponibles
   const availableTimes = allTimes.filter(
     t => !occupiedTimes.includes(t)
   );
@@ -135,9 +129,9 @@ async function loadTimes() {
     timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
   });
 
-  // DEBUG (déjalo mientras pruebas)
+  // DEBUG (puedes quitar luego)
   console.log("Fecha:", date);
-  console.log("Ocupados:", occupiedTimes);
+  console.log("Reservados:", occupiedTimes);
   console.log("Disponibles:", availableTimes);
 }
 
@@ -152,42 +146,37 @@ async function book() {
     return;
   }
 
-  const data = {
-    service_id: document.getElementById("services").value,
-    client_name: document.getElementById("name").value,
-    client_email: document.getElementById("email").value,
-    direccion: document.getElementById("direccion").value,
-    date: document.getElementById("date").value,
-    time: document.getElementById("time").value,
-    payment_method: document.getElementById("payment_method").value,
-    status: "pending",
-    created_at: new Date().toISOString()
-  };
+  const date = document.getElementById("date").value;
+  const time = document.getElementById("time").value;
 
-  if (!data.time) {
+  if (!time) {
     document.getElementById("result").textContent =
       "Debes seleccionar una hora disponible.";
     return;
   }
 
+  const data = {
+    service_id: document.getElementById("services").value,
+    client_name: document.getElementById("name").value,
+    client_email: document.getElementById("email").value,
+    direccion: document.getElementById("direccion").value,
+    date,
+    time,
+    payment_method: document.getElementById("payment_method").value,
+    status: "pending",
+    created_at: new Date().toISOString()
+  };
+
   const file = fileInput.files[0];
   const fileName = Date.now() + "_" + file.name;
 
-  const { error: uploadError } = await db.storage
-    .from("yape-comprobantes")
-    .upload(fileName, file);
-
-  if (uploadError) {
-    document.getElementById("result").textContent = uploadError.message;
-    return;
-  }
-
+  await db.storage.from("yape-comprobantes").upload(fileName, file);
   await db.from("appointments").insert(data);
 
   document.getElementById("result").textContent =
     "✅ Cita registrada correctamente";
 
-  // Recargar horarios para bloquear el recién reservado
+  // Bloquear horario recién reservado
   loadTimes();
 }
 
