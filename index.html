@@ -19,8 +19,7 @@
 <select id="time">
   <option value="">Selecciona una fecha</option>
 </select>
-<p id="available-msg" style="font-weight:bold;"></p>
-<br>
+<br><br>
 
 <label>Nombre:</label>
 <input type="text" id="name">
@@ -54,15 +53,15 @@ San Miguel, Magdalena, Jesús María, Surco
 <h4>Consideraciones</h4>
 <p>
 Para reservar la cita se debe abonar S/100 <br>
-como garantia al yape/plin 955507470 de Andres Talavera.
+como garantía al yape/plin 955507470 de Andres Talavera.
 <br>
 La diferencia al culminar el servicio. <br><br>
-Telefono de contacto: +51972598538, IG: @predicar.pe<br>
+Teléfono de contacto: +51972598538, IG: @predicar.pe<br>
 Para regalarte revisión de dueños, asesorías y más
 </p>
 
 <p>Atentamente</p>
-<p>Ingeniero Mecatronico - Andres Talavera</p>
+<p>Ingeniero Mecatrónico - Andres Talavera</p>
 
 <button onclick="book()">Agendar</button>
 <p id="result"></p>
@@ -70,121 +69,134 @@ Para regalarte revisión de dueños, asesorías y más
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
+/* ===============================
+   SUPABASE
+================================ */
 const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* ===============================
+   CARGAR SERVICIOS
+================================ */
 async function loadServices() {
   const { data, error } = await db.from("services").select("*");
-  if (error) return console.error(error);
-  document.getElementById("services").innerHTML = data.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+  if (error) {
+    console.error(error);
+    return;
+  }
+  document.getElementById("services").innerHTML =
+    data.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
 }
 
+/* ===============================
+   CARGAR HORARIOS DISPONIBLES
+   (VALIDADO CON SUPABASE)
+================================ */
 async function loadTimes() {
   const date = document.getElementById("date").value;
   const timeSelect = document.getElementById("time");
-  const availableMsg = document.getElementById("available-msg");
   timeSelect.innerHTML = "";
-  availableMsg.textContent = "";
 
   if (!date) return;
 
-  const now = new Date();
-  const allTimes = ["08:00","10:30","13:00","15:00"];
+  // Horarios del negocio
+  const allTimes = ["08:00", "10:30", "13:00", "15:00"];
 
-  // Obtener citas existentes
-  const { data: appointments } = await db
+  // Traer citas reservadas ESE DÍA (date es DATE)
+  const { data: appointments, error } = await db
     .from("appointments")
     .select("time")
     .eq("date", date);
 
-  // Obtener bloqueos
-  const { data: blockedTimes } = await db
-    .from("blocked_times")
-    .select("time, is_full_day, start_date, end_date")
-    .or(`and(start_date.lte.${date},end_date.gte.${date})`);
-
-  if (blockedTimes?.some(b => b.is_full_day)) {
-    timeSelect.innerHTML = `<option value="">Día no disponible</option>`;
-    availableMsg.textContent = "0 horarios disponibles";
+  if (error) {
+    console.error("Error cargando citas:", error);
+    timeSelect.innerHTML = `<option value="">Error al cargar horarios</option>`;
     return;
   }
 
   // Normalizar horas ocupadas a HH:MM
-  const occupied = [
-    ...(appointments || []).map(a => a.time.split(":").slice(0,2).join(":")),
-    ...(blockedTimes || []).filter(b => !b.is_full_day).map(b => b.time)
-  ];
+  const occupiedTimes = (appointments || []).map(a =>
+    a.time.trim().slice(0, 5)
+  );
 
-  const free = allTimes.filter(t => {
-    if (occupied.includes(t)) return false;
+  // Filtrar horarios disponibles
+  const availableTimes = allTimes.filter(
+    t => !occupiedTimes.includes(t)
+  );
 
-    // Regla de 2 horas para hoy
-    const todayStr = now.toISOString().slice(0,10);
-    if (date === todayStr) {
-      const [hour, minute] = t.split(":").map(Number);
-      const appointmentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0);
-      const diffHours = (appointmentDate - now) / (1000*60*60);
-      if (diffHours < 2) return false;
-    }
-
-    return true;
-  });
-
-  if (free.length === 0) {
+  if (availableTimes.length === 0) {
     timeSelect.innerHTML = `<option value="">Sin horarios disponibles</option>`;
-    availableMsg.textContent = "0 horarios disponibles";
     return;
   }
 
-  free.forEach(t => {
+  availableTimes.forEach(t => {
     timeSelect.innerHTML += `<option value="${t}">${t}</option>`;
   });
 
-  availableMsg.textContent = `${free.length} horarios disponibles`;
+  // DEBUG (déjalo mientras pruebas)
+  console.log("Fecha:", date);
+  console.log("Ocupados:", occupiedTimes);
+  console.log("Disponibles:", availableTimes);
 }
 
+/* ===============================
+   AGENDAR CITA
+================================ */
 async function book() {
-  const service_id = document.getElementById("services").value;
-  const client_name = document.getElementById("name").value;
-  const client_email = document.getElementById("email").value;
-  const direccion = document.getElementById("direccion").value;
-  const date = document.getElementById("date").value;
-  const time = document.getElementById("time").value;
-  const payment_method = document.getElementById("payment_method").value;
   const fileInput = document.getElementById("voucher");
+  if (fileInput.files.length === 0) {
+    document.getElementById("result").textContent =
+      "Debes subir un comprobante antes de agendar.";
+    return;
+  }
 
-  if (!time) return document.getElementById("result").textContent = "Selecciona una hora";
-  if (fileInput.files.length === 0) return document.getElementById("result").textContent = "Sube comprobante";
+  const data = {
+    service_id: document.getElementById("services").value,
+    client_name: document.getElementById("name").value,
+    client_email: document.getElementById("email").value,
+    direccion: document.getElementById("direccion").value,
+    date: document.getElementById("date").value,
+    time: document.getElementById("time").value,
+    payment_method: document.getElementById("payment_method").value,
+    status: "pending",
+    created_at: new Date().toISOString()
+  };
+
+  if (!data.time) {
+    document.getElementById("result").textContent =
+      "Debes seleccionar una hora disponible.";
+    return;
+  }
 
   const file = fileInput.files[0];
   const fileName = Date.now() + "_" + file.name;
 
-  const { error: uploadError } = await db.storage.from("yape-comprobantes").upload(fileName, file);
-  if (uploadError) return document.getElementById("result").textContent = "Error: " + uploadError.message;
+  const { error: uploadError } = await db.storage
+    .from("yape-comprobantes")
+    .upload(fileName, file);
 
-  const { data: publicUrl } = db.storage.from("yape-comprobantes").getPublicUrl(fileName);
-  const voucherUrl = publicUrl.publicUrl;
+  if (uploadError) {
+    document.getElementById("result").textContent = uploadError.message;
+    return;
+  }
 
-  const { error: citaError } = await db.from("appointments").insert({
-    service_id, client_name, client_email, direccion, date, time, payment_method,
-    status: "pending",
-    created_at: new Date().toISOString()
-  });
+  await db.from("appointments").insert(data);
 
-  if (citaError) return document.getElementById("result").textContent = "Error: " + citaError.message;
+  document.getElementById("result").textContent =
+    "✅ Cita registrada correctamente";
 
-  await db.from("yape_payments").insert({ imagen_url: voucherUrl, created_at: new Date().toISOString() });
-
-  document.getElementById("result").textContent = "✅ Cita registrada correctamente";
-
-  await loadTimes();
-  document.getElementById("time").value = "";
+  // Recargar horarios para bloquear el recién reservado
+  loadTimes();
 }
 
+/* ===============================
+   INIT
+================================ */
 document.addEventListener("DOMContentLoaded", () => {
   loadServices();
-  document.getElementById("date").onchange = loadTimes;
+  document.getElementById("date").addEventListener("change", loadTimes);
 });
 </script>
 
