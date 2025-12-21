@@ -34,32 +34,28 @@
   <select id="payment_method">
     <option value="yape">Yape</option>
     <option value="plin">Plin</option>
-
   </select>
-<br><br>
+  <br><br>
 
   <label>Subir comprobante (imagen):</label>
   <input type="file" id="voucher">
- 
 
   <h3>Distritos sin costo adicional:</h3>
   <p>San Isidro, San Borja, Miraflores, <br>
-San Miguel, Magdalena, Jesús María, Surco</p>
+  San Miguel, Magdalena, Jesús María, Surco</p>
 
-<h4>Consideraciones </h4>
-<p>Para reservar la cita se debe abonar S/100 <br>
-como garantia al yape/plin 955507470 de Andres Talavera. 
-<br>
-La diferencia al culminar el servicio. <br><br>
-Telefono de contacto: +51972598538, IG: @predicar.pe<br> 
-Para regalarte revisión de dueños, asesorías y más
+  <h4>Consideraciones </h4>
+  <p>
+    Para reservar la cita se debe abonar S/100 <br>
+    como garantia al yape/plin 955507470 de Andres Talavera. 
+    <br>
+    La diferencia al culminar el servicio. <br><br>
+    Telefono de contacto: +51972598538, IG: @predicar.pe<br> 
+    Para regalarte revisión de dueños, asesorías y más
+  </p>
 
-<p>Atentamente</p>
-<p>Ingeniero Mecatronico - Andres Talavera</p>
-
-
-
-
+  <p>Atentamente</p>
+  <p>Ingeniero Mecatronico - Andres Talavera</p>
 
   <button onclick="book()">Agendar</button>
   <p id="result"></p>
@@ -97,6 +93,19 @@ Para regalarte revisión de dueños, asesorías y más
         return;
       }
 
+      // 🆕 BLOQUEO DE DÍA COMPLETO / RANGO DE FECHAS
+      const { data: blockedDates } = await db
+        .from("blocked_dates")
+        .select("id")
+        .lte("start_date", date)
+        .gte("end_date", date);
+
+      if (blockedDates && blockedDates.length > 0) {
+        document.getElementById("time").innerHTML = "";
+        return;
+      }
+      // 🆕 FIN BLOQUEO POR FECHA
+
       const { data: ap } = await db.from("appointments").select("*").eq("date", date);
       const { data: bl } = await db.from("blocked_times").select("*").eq("date", date);
 
@@ -128,9 +137,9 @@ Para regalarte revisión de dueños, asesorías y más
     async function book() {
       const fileInput = document.getElementById("voucher");
 
-      // ✅ Validar que haya archivo
       if (fileInput.files.length === 0) {
-        document.getElementById("result").textContent = "Debes subir un comprobante antes de agendar.";
+        document.getElementById("result").textContent =
+          "Debes subir un comprobante antes de agendar.";
         return;
       }
 
@@ -142,50 +151,53 @@ Para regalarte revisión de dueños, asesorías y más
       const time = document.getElementById("time").value;
       const payment_method = document.getElementById("payment_method").value;
 
-      // 1️⃣ Subir comprobante primero
       const file = fileInput.files[0];
       const fileName = Date.now() + "_" + file.name;
 
-      let { data: uploadData, error: uploadError } = await db.storage.from("yape-comprobantes").upload(fileName, file);
+      let { error: uploadError } = await db.storage
+        .from("yape-comprobantes")
+        .upload(fileName, file);
+
       if (uploadError) {
-        document.getElementById("result").textContent = "Error al subir comprobante: " + uploadError.message;
+        document.getElementById("result").textContent =
+          "Error al subir comprobante: " + uploadError.message;
         return;
       }
 
-      const { data: publicUrl } = db.storage.from("yape-comprobantes").getPublicUrl(fileName);
-      const voucherUrl = publicUrl.publicUrl;
+      const { data: publicUrl } = db.storage
+        .from("yape-comprobantes")
+        .getPublicUrl(fileName);
 
-      // 2️⃣ Insertar cita en appointments
-      let { data: cita, error: citaError } = await db.from("appointments").insert({
-        service_id,
-        client_name,
-        client_email,
-        direccion,
-        date,
-        time,
-        payment_method,
-        status: "pending",
-        created_at: new Date().toISOString()
-      }).select().single();
+      let { data: cita, error: citaError } = await db
+        .from("appointments")
+        .insert({
+          service_id,
+          client_name,
+          client_email,
+          direccion,
+          date,
+          time,
+          payment_method,
+          status: "pending",
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
 
       if (citaError) {
-        document.getElementById("result").textContent = "Error al registrar cita: " + citaError.message;
+        document.getElementById("result").textContent =
+          "Error al registrar cita: " + citaError.message;
         return;
       }
 
-      // 3️⃣ Insertar en yape_payments
-      let { error: paymentError } = await db.from("yape_payments").insert({
+      await db.from("yape_payments").insert({
         cita_id: cita.id,
-        imagen_url: voucherUrl,
+        imagen_url: publicUrl.publicUrl,
         created_at: new Date().toISOString()
       });
 
-      if (paymentError) {
-        document.getElementById("result").textContent = "Error al registrar comprobante: " + paymentError.message;
-        return;
-      }
-
-      document.getElementById("result").textContent = "Cita registrada correctamente";
+      document.getElementById("result").textContent =
+        "Cita registrada correctamente";
     }
 
     // ------------------------------
