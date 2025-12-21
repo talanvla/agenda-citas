@@ -93,14 +93,20 @@ async function loadTimes() {
     ...(blockedTimes || []).filter(b => !b.is_full_day).map(b => b.time)
   ];
 
-  // Filtrar horas libres
   const free = allTimes.filter(t => {
     if (occupied.includes(t)) return false;
 
-    const [hour, minute] = t.split(":").map(Number);
-    const appointmentDate = new Date(date + "T" + t + ":00"); // ISO string
-    const diffHours = (appointmentDate - now) / (1000*60*60);
-    return diffHours >= 2; // regla 2 horas antes
+    // Solo aplicar regla de 2 horas si la fecha es hoy
+    const todayStr = now.toISOString().slice(0,10);
+    if (date === todayStr) {
+      const [hour, minute] = t.split(":").map(Number);
+      // Fecha exacta en hora local
+      const appointmentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0);
+      const diffHours = (appointmentDate - now) / (1000*60*60);
+      if (diffHours < 2) return false;
+    }
+
+    return true;
   });
 
   if (free.length === 0) {
