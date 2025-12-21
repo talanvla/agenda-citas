@@ -40,28 +40,9 @@
 </select>
 <br><br>
 
-<label>Subir comprobante (imagen):</label>
+<label>Subir comprobante:</label>
 <input type="file" id="voucher">
 <br><br>
-
-<h3>Distritos sin costo adicional:</h3>
-<p>
-San Isidro, San Borja, Miraflores, <br>
-San Miguel, Magdalena, Jesús María, Surco
-</p>
-
-<h4>Consideraciones</h4>
-<p>
-Para reservar la cita se debe abonar S/100 <br>
-como garantia al yape/plin 955507470 de Andres Talavera.
-<br>
-La diferencia al culminar el servicio. <br><br>
-Telefono de contacto: +51972598538, IG: @predicar.pe<br>
-Para regalarte revisión de dueños, asesorías y más
-</p>
-
-<p>Atentamente</p>
-<p>Ingeniero Mecatronico - Andres Talavera</p>
 
 <button onclick="book()">Agendar</button>
 <p id="result"></p>
@@ -75,7 +56,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ===============================
-   CARGAR SERVICIOS
+   SERVICIOS
 ================================ */
 async function loadServices() {
   const { data } = await db.from("services").select("*");
@@ -84,7 +65,7 @@ async function loadServices() {
 }
 
 /* ===============================
-   CARGAR HORARIOS DISPONIBLES
+   HORARIOS DISPONIBLES
 ================================ */
 async function loadTimes() {
   const dateInput = document.getElementById("date").value;
@@ -93,19 +74,16 @@ async function loadTimes() {
 
   if (!dateInput) return;
 
-  /* 🚫 FECHAS PASADAS */
-  const selectedDate = new Date(dateInput + "T00:00:00");
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
-  if (selectedDate < today) {
+  /* ❌ FECHAS PASADAS */
+  const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+  if (dateInput < todayStr) {
     timeSelect.innerHTML = `<option value="">Fecha no disponible</option>`;
     return;
   }
 
   const allTimes = ["08:00","10:30","13:00","15:00"];
 
-  /* 📌 CITAS YA RESERVADAS */
+  /* 📌 CITAS RESERVADAS */
   const { data: appointments } = await db
     .from("appointments")
     .select("time")
@@ -119,7 +97,6 @@ async function loadTimes() {
     .select("time, is_full_day")
     .eq("date", dateInput);
 
-  /* 🔒 BLOQUEO DE DÍA COMPLETO */
   if (blocks?.some(b => b.is_full_day)) {
     timeSelect.innerHTML = `<option value="">Día no disponible</option>`;
     return;
@@ -131,11 +108,11 @@ async function loadTimes() {
 
   /* ⏱️ REGLA DE 2 HORAS (SOLO HOY) */
   let availableTimes = allTimes.filter(t => {
-    if (dateInput === today.toISOString().split("T")[0]) {
+    if (dateInput === todayStr) {
       const [h, m] = t.split(":");
       const slot = new Date();
       slot.setHours(h, m, 0, 0);
-      return (slot - new Date()) >= 2 * 60 * 60 * 1000;
+      return slot.getTime() - Date.now() >= 2 * 60 * 60 * 1000;
     }
     return true;
   });
@@ -156,13 +133,15 @@ async function loadTimes() {
 }
 
 /* ===============================
-   AGENDAR CITA
+   AGENDAR
 ================================ */
 async function book() {
+  const date = document.getElementById("date").value;
   const time = document.getElementById("time").value;
+
   if (!time) {
     document.getElementById("result").textContent =
-      "Debes seleccionar una hora disponible.";
+      "Debes seleccionar un horario disponible.";
     return;
   }
 
@@ -171,13 +150,13 @@ async function book() {
     client_name: document.getElementById("name").value,
     client_email: document.getElementById("email").value,
     direccion: document.getElementById("direccion").value,
-    date: document.getElementById("date").value,
+    date,
     time,
     payment_method: document.getElementById("payment_method").value,
     status: "pending"
   });
 
-  document.getElementById("result").textContent = "✅ Cita registrada correctamente";
+  document.getElementById("result").textContent = "✅ Cita registrada";
   loadTimes();
 }
 
