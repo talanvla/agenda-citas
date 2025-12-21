@@ -198,12 +198,20 @@ async function book() {
     return;
   }
 
+//Guardar comprobante
   await db.from("yape_payments").insert({
     imagen_url: voucherUrl,
     created_at: new Date().toISOString()
   });
 
   document.getElementById("result").textContent = "✅ Cita registrada correctamente";
+
+
+/*Bloquea horario seleccionado*/
+await loadTimes();
+
+
+
 }
 
 /* ===============================
