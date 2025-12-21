@@ -44,25 +44,6 @@
 <input type="file" id="voucher">
 <br><br>
 
-<h3>Distritos sin costo adicional:</h3>
-<p>
-San Isidro, San Borja, Miraflores, <br>
-San Miguel, Magdalena, Jesús María, Surco
-</p>
-
-<h4>Consideraciones</h4>
-<p>
-Para reservar la cita se debe abonar S/100 <br>
-como garantía al yape/plin 955507470 de Andres Talavera.
-<br>
-La diferencia al culminar el servicio. <br><br>
-Teléfono de contacto: +51972598538, IG: @predicar.pe<br>
-Para regalarte revisión de dueños, asesorías y más
-</p>
-
-<p>Atentamente</p>
-<p>Ingeniero Mecatrónico - Andres Talavera</p>
-
 <button onclick="book()">Agendar</button>
 <p id="result"></p>
 
@@ -71,27 +52,14 @@ Para regalarte revisión de dueños, asesorías y más
 <script>
 const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
-
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ===============================
-   CARGAR SERVICIOS
-================================ */
 async function loadServices() {
   const { data, error } = await db.from("services").select("*");
-  if (error) {
-    console.error("Error cargando servicios:", error);
-    return;
-  }
-  let html = "";
-  data.forEach(s => html += `<option value="${s.id}">${s.name}</option>`);
-  document.getElementById("services").innerHTML = html;
+  if (error) return console.error(error);
+  document.getElementById("services").innerHTML = data.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
 }
 
-/* ===============================
-   CARGAR HORAS DISPONIBLES
-   Validación: citas existentes, bloqueos y 2h antes
-================================ */
 async function loadTimes() {
   const date = document.getElementById("date").value;
   const timeSelect = document.getElementById("time");
@@ -100,61 +68,39 @@ async function loadTimes() {
   if (!date) return;
 
   const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
-  if (new Date(date) < new Date(todayStr)) {
-    timeSelect.innerHTML = `<option value="">Fecha no válida</option>`;
-    return;
-  }
-
   const allTimes = ["08:00","10:30","13:00","15:00"];
 
-  // 🔹 Obtener citas existentes para la fecha seleccionada
-  const { data: appointments, error: apError } = await db
+  // Obtener citas existentes
+  const { data: appointments } = await db
     .from("appointments")
     .select("time")
     .eq("date", date);
 
-  if (apError) {
-    console.error("Error cargando citas:", apError);
-    timeSelect.innerHTML = `<option value="">Error al cargar citas</option>`;
-    return;
-  }
-
-  // 🔹 Obtener bloqueos (por hora o full day)
-  const { data: blockedTimes, error: blError } = await db
+  // Obtener bloqueos
+  const { data: blockedTimes } = await db
     .from("blocked_times")
     .select("time, is_full_day, start_date, end_date")
     .or(`and(start_date.lte.${date},end_date.gte.${date})`);
 
-  if (blError) {
-    console.error("Error cargando bloqueos:", blError);
-    timeSelect.innerHTML = `<option value="">Error al cargar bloqueos</option>`;
-    return;
-  }
-
-  // 🔹 Si hay bloqueo full day
-  if (blockedTimes.some(b => b.is_full_day)) {
+  if (blockedTimes?.some(b => b.is_full_day)) {
     timeSelect.innerHTML = `<option value="">Día no disponible</option>`;
     return;
   }
 
-  // 🔹 Calcular horas ocupadas
+  // Normalizar horas ocupadas a HH:MM
   const occupied = [
-    ...(appointments || []).map(a => a.time),
+    ...(appointments || []).map(a => a.time.slice(0,5)),
     ...(blockedTimes || []).filter(b => !b.is_full_day).map(b => b.time)
   ];
 
-  // 🔹 Filtrar horas libres considerando 2 horas de anticipación
+  // Filtrar horas libres
   const free = allTimes.filter(t => {
     if (occupied.includes(t)) return false;
 
     const [hour, minute] = t.split(":").map(Number);
-    const appointmentDate = new Date(date);
-    appointmentDate.setHours(hour, minute, 0, 0);
-
-    const diffHours = (appointmentDate - now) / (1000 * 60 * 60);
-
-    return diffHours >= 2; // mostrar solo si faltan 2h o más
+    const appointmentDate = new Date(date + "T" + t + ":00"); // ISO string
+    const diffHours = (appointmentDate - now) / (1000*60*60);
+    return diffHours >= 2; // regla 2 horas antes
   });
 
   if (free.length === 0) {
@@ -167,16 +113,7 @@ async function loadTimes() {
   });
 }
 
-/* ===============================
-   AGENDAR CITA
-================================ */
 async function book() {
-  const fileInput = document.getElementById("voucher");
-  if (fileInput.files.length === 0) {
-    document.getElementById("result").textContent = "Debes subir un comprobante antes de agendar.";
-    return;
-  }
-
   const service_id = document.getElementById("services").value;
   const client_name = document.getElementById("name").value;
   const client_email = document.getElementById("email").value;
@@ -184,62 +121,36 @@ async function book() {
   const date = document.getElementById("date").value;
   const time = document.getElementById("time").value;
   const payment_method = document.getElementById("payment_method").value;
+  const fileInput = document.getElementById("voucher");
 
-  if (!time) {
-    document.getElementById("result").textContent = "Debes seleccionar una hora disponible.";
-    return;
-  }
+  if (!time) return document.getElementById("result").textContent = "Selecciona una hora";
+  if (fileInput.files.length === 0) return document.getElementById("result").textContent = "Sube comprobante";
 
-  // Subir comprobante
   const file = fileInput.files[0];
   const fileName = Date.now() + "_" + file.name;
 
-  const { error: uploadError } = await db.storage
-    .from("yape-comprobantes")
-    .upload(fileName, file);
-  if (uploadError) {
-    document.getElementById("result").textContent = "Error al subir comprobante: " + uploadError.message;
-    return;
-  }
+  const { error: uploadError } = await db.storage.from("yape-comprobantes").upload(fileName, file);
+  if (uploadError) return document.getElementById("result").textContent = "Error: " + uploadError.message;
 
-  const { data: publicUrl } = db.storage
-    .from("yape-comprobantes")
-    .getPublicUrl(fileName);
+  const { data: publicUrl } = db.storage.from("yape-comprobantes").getPublicUrl(fileName);
   const voucherUrl = publicUrl.publicUrl;
 
-  // Insertar cita
   const { error: citaError } = await db.from("appointments").insert({
-    service_id,
-    client_name,
-    client_email,
-    direccion,
-    date,
-    time,
-    payment_method,
+    service_id, client_name, client_email, direccion, date, time, payment_method,
     status: "pending",
     created_at: new Date().toISOString()
   });
-  if (citaError) {
-    document.getElementById("result").textContent = "Error al registrar cita: " + citaError.message;
-    return;
-  }
 
-  // Guardar comprobante
-  await db.from("yape_payments").insert({
-    imagen_url: voucherUrl,
-    created_at: new Date().toISOString()
-  });
+  if (citaError) return document.getElementById("result").textContent = "Error: " + citaError.message;
+
+  await db.from("yape_payments").insert({ imagen_url: voucherUrl, created_at: new Date().toISOString() });
 
   document.getElementById("result").textContent = "✅ Cita registrada correctamente";
 
-  // 🔹 Actualizar horarios disponibles
   await loadTimes();
   document.getElementById("time").value = "";
 }
 
-/* ===============================
-   INIT
-================================ */
 document.addEventListener("DOMContentLoaded", () => {
   loadServices();
   document.getElementById("date").onchange = loadTimes;
