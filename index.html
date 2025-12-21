@@ -53,14 +53,15 @@ San Miguel, Magdalena, Jesús María, Surco
 <h4>Consideraciones</h4>
 <p>
 Para reservar la cita se debe abonar S/100 <br>
-como garantía al yape/plin 955507470 de Andres Talavera.
+como garantia al yape/plin 955507470 de Andres Talavera.
 <br>
 La diferencia al culminar el servicio. <br><br>
-Teléfono de contacto: +51972598538, IG: @predicar.pe
+Telefono de contacto: +51972598538, IG: @predicar.pe<br>
+Para regalarte revisión de dueños, asesorías y más
 </p>
 
 <p>Atentamente</p>
-<p>Ingeniero Mecatrónico - Andres Talavera</p>
+<p>Ingeniero Mecatronico - Andres Talavera</p>
 
 <button onclick="book()">Agendar</button>
 <p id="result"></p>
@@ -74,7 +75,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ===============================
-   SERVICIOS
+   CARGAR SERVICIOS
 ================================ */
 async function loadServices() {
   const { data } = await db.from("services").select("*");
@@ -83,7 +84,7 @@ async function loadServices() {
 }
 
 /* ===============================
-   HORARIOS DISPONIBLES
+   CARGAR HORARIOS DISPONIBLES
 ================================ */
 async function loadTimes() {
   const dateInput = document.getElementById("date").value;
@@ -92,43 +93,57 @@ async function loadTimes() {
 
   if (!dateInput) return;
 
+  /* 🚫 FECHAS PASADAS */
+  const selectedDate = new Date(dateInput + "T00:00:00");
   const today = new Date();
   today.setHours(0,0,0,0);
 
-  const selectedDate = new Date(dateInput + "T00:00:00");
-
-  // ❌ Bloquear fechas pasadas
   if (selectedDate < today) {
-    timeSelect.innerHTML = `<option value="">Fecha no válida</option>`;
+    timeSelect.innerHTML = `<option value="">Fecha no disponible</option>`;
     return;
   }
 
-  const allTimes = ["08:00", "10:30", "13:00", "15:00"];
+  const allTimes = ["08:00","10:30","13:00","15:00"];
 
-  // Traer horas ya reservadas
+  /* 📌 CITAS YA RESERVADAS */
   const { data: appointments } = await db
     .from("appointments")
     .select("time")
     .eq("date", dateInput);
 
-  const occupiedTimes = (appointments || []).map(a => a.time);
+  const reservedTimes = (appointments || []).map(a => a.time);
 
-  let availableTimes = allTimes.filter(
-    t => !occupiedTimes.includes(t)
-  );
+  /* 📌 BLOQUEOS MANUALES */
+  const { data: blocks } = await db
+    .from("blocked_times")
+    .select("time, is_full_day")
+    .eq("date", dateInput);
 
-  // ⏱️ Regla 2 horas (solo si es hoy)
-  const now = new Date();
-  if (selectedDate.getTime() === today.getTime()) {
-    availableTimes = availableTimes.filter(t => {
-      const [h, m] = t.split(":").map(Number);
-      const slotTime = new Date();
-      slotTime.setHours(h, m, 0, 0);
-
-      const diffHours = (slotTime - now) / 36e5;
-      return diffHours >= 2;
-    });
+  /* 🔒 BLOQUEO DE DÍA COMPLETO */
+  if (blocks?.some(b => b.is_full_day)) {
+    timeSelect.innerHTML = `<option value="">Día no disponible</option>`;
+    return;
   }
+
+  const blockedTimes = (blocks || [])
+    .filter(b => b.time)
+    .map(b => b.time);
+
+  /* ⏱️ REGLA DE 2 HORAS (SOLO HOY) */
+  let availableTimes = allTimes.filter(t => {
+    if (dateInput === today.toISOString().split("T")[0]) {
+      const [h, m] = t.split(":");
+      const slot = new Date();
+      slot.setHours(h, m, 0, 0);
+      return (slot - new Date()) >= 2 * 60 * 60 * 1000;
+    }
+    return true;
+  });
+
+  /* ❌ QUITAR RESERVADOS Y BLOQUEADOS */
+  availableTimes = availableTimes.filter(
+    t => !reservedTimes.includes(t) && !blockedTimes.includes(t)
+  );
 
   if (availableTimes.length === 0) {
     timeSelect.innerHTML = `<option value="">Sin horarios disponibles</option>`;
@@ -141,22 +156,13 @@ async function loadTimes() {
 }
 
 /* ===============================
-   AGENDAR
+   AGENDAR CITA
 ================================ */
 async function book() {
-  const fileInput = document.getElementById("voucher");
-  if (!fileInput.files.length) {
-    document.getElementById("result").textContent =
-      "Debes subir un comprobante.";
-    return;
-  }
-
-  const date = document.getElementById("date").value;
   const time = document.getElementById("time").value;
-
   if (!time) {
     document.getElementById("result").textContent =
-      "Selecciona una hora válida.";
+      "Debes seleccionar una hora disponible.";
     return;
   }
 
@@ -165,16 +171,13 @@ async function book() {
     client_name: document.getElementById("name").value,
     client_email: document.getElementById("email").value,
     direccion: document.getElementById("direccion").value,
-    date,
+    date: document.getElementById("date").value,
     time,
     payment_method: document.getElementById("payment_method").value,
-    status: "pending",
-    created_at: new Date().toISOString()
+    status: "pending"
   });
 
-  document.getElementById("result").textContent =
-    "✅ Cita registrada correctamente";
-
+  document.getElementById("result").textContent = "✅ Cita registrada correctamente";
   loadTimes();
 }
 
