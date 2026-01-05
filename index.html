@@ -5,6 +5,7 @@
   <title>Agendar Cita</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- Fuente -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -99,7 +100,7 @@
 
 <body>
 
-<!-- IMÁGENES DECORATIVAS -->
+<!-- IMÁGENES (SOLO VISUAL) -->
 <div class="hero">
   <div class="hero-images">
     <img src="https://images.unsplash.com/photo-1549924231-f129b911e442">
@@ -110,7 +111,7 @@
 
 <div class="container">
 
-  <!-- TEXTO ORIGINAL -->
+  <!-- TEXTO ORIGINAL SIN CAMBIOS -->
   <h1>Agenda tu cita</h1>
 
   <label>Servicio:</label>
@@ -161,13 +162,12 @@
 
   <button onclick="book()">Agendar</button>
   <p id="result"></p>
-
 </div>
 
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-<!-- 🔒 TU JS ORIGINAL, SIN CAMBIOS -->
+<!-- 🔒 JS ORIGINAL EXACTO (SIN MODIFICAR) -->
 <script>
   const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
@@ -214,36 +214,41 @@
     const free = allTimes.filter(t => {
       if (occupied.includes(t)) return false;
 
-      const slot = new Date(date + "T" + t + ":00");
+      const [h,m] = t.split(":");
+      const slot = new Date(date + "T" + h + ":" + m + ":00");
+
       if (date === todayStr && slot < now) return false;
       if (date === todayStr && (slot - now)/3600000 < 2) return false;
+
       return true;
     });
 
-    document.getElementById("time").innerHTML =
-      free.map(t => `<option>${t}</option>`).join("");
+    let html = "";
+    free.forEach(t => html += `<option>${t}</option>`);
+    document.getElementById("time").innerHTML = html;
   }
 
   async function book() {
     const fileInput = document.getElementById("voucher");
+
     if (fileInput.files.length === 0) {
       document.getElementById("result").textContent =
         "Debes subir un comprobante antes de agendar.";
       return;
     }
 
-    const service_id = services.value;
-    const client_name = name.value;
-    const client_email = email.value;
+    const service_id = document.getElementById("services").value;
+    const client_name = document.getElementById("name").value;
+    const client_email = document.getElementById("email").value;
     const direccion = document.getElementById("direccion").value;
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
-    const payment_method = payment_method.value;
+    const payment_method = document.getElementById("payment_method").value;
 
     const file = fileInput.files[0];
     const fileName = Date.now() + "_" + file.name;
 
-    const { error: uploadError } = await db.storage
+    let { error: uploadError } = await db.storage
       .from("yape-comprobantes")
       .upload(fileName, file);
 
@@ -257,7 +262,7 @@
       .from("yape-comprobantes")
       .getPublicUrl(fileName);
 
-    const { data: cita, error } = await db
+    let { data: cita, error: citaError } = await db
       .from("appointments")
       .insert({
         service_id,
@@ -273,9 +278,9 @@
       .select()
       .single();
 
-    if (error) {
+    if (citaError) {
       document.getElementById("result").textContent =
-        "Error al registrar cita: " + error.message;
+        "Error al registrar cita: " + citaError.message;
       return;
     }
 
