@@ -102,15 +102,15 @@
 <!-- IMÁGENES DECORATIVAS -->
 <div class="hero">
   <div class="hero-images">
-    <img src="https://images.unsplash.com/photo-1549924231-f129b911e442" alt="Auto inspección">
-    <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70" alt="Auto seminuevo">
-    <img src="https://images.unsplash.com/photo-1542362567-b07e54358753" alt="Revisión mecánica">
+    <img src="https://images.unsplash.com/photo-1549924231-f129b911e442">
+    <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70">
+    <img src="https://images.unsplash.com/photo-1542362567-b07e54358753">
   </div>
 </div>
 
 <div class="container">
 
-  <!-- 🔒 TEXTO ORIGINAL SIN MODIFICAR -->
+  <!-- TEXTO ORIGINAL -->
   <h1>Agenda tu cita</h1>
 
   <label>Servicio:</label>
@@ -161,13 +161,138 @@
 
   <button onclick="book()">Agendar</button>
   <p id="result"></p>
+
 </div>
 
+<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-<!-- TU JS ORIGINAL EXACTO -->
+<!-- 🔒 TU JS ORIGINAL, SIN CAMBIOS -->
 <script>
-  /* TU CÓDIGO JS VA AQUÍ TAL CUAL */
+  const SUPABASE_URL = "https://lseahxqxcnmwfruoaubt.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function loadServices() {
+    const { data } = await db.from("services").select("*");
+    let html = "";
+    if (data) {
+      data.forEach(s => html += `<option value="${s.id}">${s.name}</option>`);
+    }
+    document.getElementById("services").innerHTML = html;
+  }
+
+  async function loadTimes() {
+    const date = document.getElementById("date").value;
+    if (!date) return;
+
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+
+    if (new Date(date) < new Date(todayStr)) {
+      document.getElementById("time").innerHTML = "";
+      return;
+    }
+
+    const { data: blockedDates } = await db
+      .from("blocked_dates")
+      .select("id")
+      .lte("start_date", date)
+      .gte("end_date", date);
+
+    if (blockedDates && blockedDates.length > 0) {
+      document.getElementById("time").innerHTML = "";
+      return;
+    }
+
+    const { data: ap } = await db.from("appointments").select("*").eq("date", date);
+    const { data: bl } = await db.from("blocked_times").select("*").eq("date", date);
+
+    const allTimes = ["08:00","10:30","13:00","15:30"];
+    const occupied = [...ap.map(a=>a.time), ...bl.map(b=>b.time)];
+
+    const free = allTimes.filter(t => {
+      if (occupied.includes(t)) return false;
+
+      const slot = new Date(date + "T" + t + ":00");
+      if (date === todayStr && slot < now) return false;
+      if (date === todayStr && (slot - now)/3600000 < 2) return false;
+      return true;
+    });
+
+    document.getElementById("time").innerHTML =
+      free.map(t => `<option>${t}</option>`).join("");
+  }
+
+  async function book() {
+    const fileInput = document.getElementById("voucher");
+    if (fileInput.files.length === 0) {
+      document.getElementById("result").textContent =
+        "Debes subir un comprobante antes de agendar.";
+      return;
+    }
+
+    const service_id = services.value;
+    const client_name = name.value;
+    const client_email = email.value;
+    const direccion = document.getElementById("direccion").value;
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+    const payment_method = payment_method.value;
+
+    const file = fileInput.files[0];
+    const fileName = Date.now() + "_" + file.name;
+
+    const { error: uploadError } = await db.storage
+      .from("yape-comprobantes")
+      .upload(fileName, file);
+
+    if (uploadError) {
+      document.getElementById("result").textContent =
+        "Error al subir comprobante: " + uploadError.message;
+      return;
+    }
+
+    const { data: publicUrl } = db.storage
+      .from("yape-comprobantes")
+      .getPublicUrl(fileName);
+
+    const { data: cita, error } = await db
+      .from("appointments")
+      .insert({
+        service_id,
+        client_name,
+        client_email,
+        direccion,
+        date,
+        time,
+        payment_method,
+        status: "pending",
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      document.getElementById("result").textContent =
+        "Error al registrar cita: " + error.message;
+      return;
+    }
+
+    await db.from("yape_payments").insert({
+      cita_id: cita.id,
+      imagen_url: publicUrl.publicUrl,
+      created_at: new Date().toISOString()
+    });
+
+    document.getElementById("result").textContent =
+      "Cita registrada correctamente";
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadServices();
+    document.getElementById("date").onchange = loadTimes;
+  });
 </script>
 
 </body>
