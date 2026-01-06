@@ -292,23 +292,31 @@
 
     
 
-await fetch("https://lseahxqxcnmwfruoaubt.supabase.co/functions/v1/send-appointment-email", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${SUPABASE_KEY}`
-  },
-  body: JSON.stringify({
-    date,
-    time,
-    direccion,
-    email: client_email
-  })
-});
+const emailResponse = await fetch(
+  "https://lseahxqxcnmwfruoaubt.supabase.co/functions/v1/send-appointment-email",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${SUPABASE_KEY}`
+    },
+    body: JSON.stringify({
+      date,
+      time,
+      direccion,
+      email: client_email
+    })
+  }
+);
+
+if (!emailResponse.ok) {
+  console.error("Error enviando email");
+} else {
+  console.log("Email enviado");
+}
 
 document.getElementById("result").textContent =
-      "Cita registrada correctamente";
-}
+  "✅ Cita registrada correctamente. Revisa tu correo.";
 
   document.addEventListener("DOMContentLoaded", () => {
     loadServices();
