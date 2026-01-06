@@ -290,8 +290,38 @@
       created_at: new Date().toISOString()
     });
 
+
+await fetch(
+    "https://lseahxqxcnmwfruoaubt.supabase.co/functions/v1/send-appointment-email",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SUPABASE_KEY}`
+      },
+      body: JSON.stringify({
+        date,
+        time,
+        direccion,
+        email: client_email,
+        client_name
+      })
+    }
+  );
+
+
     document.getElementById("result").textContent =
       "Cita registrada correctamente";
+
+  document.getElementById("name").value = "";
+  document.getElementById("email").value = "";
+  document.getElementById("direccion").value = "";
+  document.getElementById("date").value = "";
+  document.getElementById("time").innerHTML = "";
+  document.getElementById("services").selectedIndex = 0;
+  document.getElementById("voucher").value = "";
+
+
   }
 
   document.addEventListener("DOMContentLoaded", () => {
