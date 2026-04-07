@@ -58,7 +58,6 @@ table, th, td {border:1px solid #ddd;}
 <h3>Comparación de servicios</h3>
 
 <table style="width:100%;border-collapse:collapse;text-align:center;font-size:14px;">
-
 <tr style="background:#111;color:white;">
 <th>Características</th>
 <th>Básico</th>
@@ -88,7 +87,6 @@ table, th, td {border:1px solid #ddd;}
 <td>S/350</td>
 <td>USD 690</td>
 </tr>
-
 </table>
 </div>
 
@@ -237,6 +235,16 @@ pago:payment_method
 });
 
 document.getElementById("result").textContent="Cita registrada correctamente";
+
+// 🔥 LIMPIAR FORMULARIO
+document.getElementById("services").value="";
+document.getElementById("date").value="";
+document.getElementById("time").innerHTML="";
+document.getElementById("name").value="";
+document.getElementById("email").value="";
+document.getElementById("direccion").value="";
+document.getElementById("payment_method").value="yape";
+document.getElementById("voucher").value="";
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
