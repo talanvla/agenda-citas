@@ -2,23 +2,92 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Predicar - Sistema Completo</title>
+<title>Agendar Cita</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{font-family:'Montserrat',sans-serif;margin:0;background:#f4f6f8;color:#333}
-.hero{background:#111;padding:30px 20px}
-.hero-images{max-width:1100px;margin:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.hero-images img{width:100%;height:180px;object-fit:cover;border-radius:12px}
-.container{max-width:900px;margin:-40px auto 40px;background:white;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.1);padding:30px}
-h1{text-align:center;margin-top:0}
-label{font-weight:600;display:block;margin-top:15px}
-input,select{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc}
-button{margin-top:20px;background:#2d5bff;color:white;border:none;padding:14px;width:100%;border-radius:10px;cursor:pointer}
-button:hover{background:#1f45cc}
-.card{padding:15px;border-radius:10px;margin-top:15px}
-.hidden{display:none}
+
+body{
+font-family:'Montserrat',sans-serif;
+margin:0;
+background:#f4f6f8;
+color:#333;
+}
+
+.hero{
+background:#111;
+padding:30px 20px;
+}
+
+.hero-images{
+max-width:1100px;
+margin:auto;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:12px;
+}
+
+.hero-images img{
+width:100%;
+height:180px;
+object-fit:cover;
+border-radius:12px;
+}
+
+.container{
+max-width:900px;
+margin:-40px auto 40px;
+background:white;
+border-radius:16px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+padding:30px;
+}
+
+h1{
+text-align:center;
+margin-top:0;
+}
+
+label{
+font-weight:600;
+display:block;
+margin-top:15px;
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin-top:5px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:14px;
+}
+
+button{
+margin-top:25px;
+background:#2d5bff;
+color:white;
+border:none;
+padding:14px;
+width:100%;
+font-size:16px;
+border-radius:10px;
+cursor:pointer;
+font-weight:600;
+}
+
+button:hover{
+background:#1f45cc;
+}
+
+#result{
+margin-top:15px;
+font-weight:600;
+text-align:center;
+}
+
 </style>
 </head>
 
@@ -26,120 +95,218 @@ button:hover{background:#1f45cc}
 
 <div class="hero">
 <div class="hero-images">
-<img src="imagen5.jpg">
-<img src="imagen6.jpg">
-<img src="imagen7.jpg">
-<img src="imagen8.jpg">
+<img src="/imagen5.jpg" style="max-width:300px;margin-right:8px">
+<img src="/imagen6.jpg" style="max-width:300px;margin-right:8px">
+<img src="/imagen7.jpg" style="max-width:300px;margin-right:8px">
+<img src="/imagen8.jpg" style="max-width:300px">
 </div>
 </div>
 
 <div class="container">
 
-<h1>¿Qué deseas cotizar?</h1>
+<h1>Agenda tu cita</h1>
 
-<select id="tipo" onchange="cambiarFlujo()">
-<option value="">Seleccionar</option>
-<option value="busqueda">Búsqueda</option>
-<option value="inspeccion">Inspección</option>
+<h3>Galería</h3>
+
+<img src="/imagen1.jpg" style="max-width:200px;margin-right:8px">
+<img src="/imagen2.jpg" style="max-width:200px;margin-right:8px">
+<img src="/imagen3.jpg" style="max-width:200px;margin-right:8px">
+<img src="/imagen4.jpg" style="max-width:200px">
+
+<h3>Distritos con cobertura:</h3>
+
+<p>
+Lima:
+San Isidro, San Borja, Miraflores,<br>
+San Miguel, Magdalena, Jesús María, Surco
+
+</p>
+
+<h4>Consideraciones</h4>
+
+<p>
+Para reservar la cita se debe abonar S/100<br>
+como garantia al yape/plin 955507470 de Andres Talavera.
+<br>
+La diferencia al culminar el servicio.
+<br><br>
+Telefono: +51972598538
+</p>
+
+<label>Servicio</label>
+<select id="services"></select>
+
+<label>Fecha</label>
+<input type="date" id="date">
+
+<label>Hora</label>
+<select id="time"></select>
+
+<label>Nombre</label>
+<input type="text" id="name">
+
+<label>Email</label>
+<input type="email" id="email">
+
+<label>Dirección de escaneo</label>
+<input type="text" id="direccion">
+
+<label>Método de pago</label>
+<select id="payment_method">
+<option value="yape">Yape</option>
+<option value="plin">Plin</option>
 </select>
 
-<div id="busquedaBox" class="hidden">
+<label>Subir comprobante</label>
+<input type="file" id="voucher">
 
-<label>Nombre</label>
-<input id="nombreBusqueda">
+<button onclick="book()">Agendar</button>
 
-<label>Modelo del auto</label>
-<input id="modeloBusqueda">
-
-<label>Presupuesto (USD)</label>
-<input type="number" id="presupuestoBusqueda">
-
-<button onclick="cotizarBusqueda()">Cotizar búsqueda</button>
-
-<div id="resultadoBusqueda"></div>
+<p id="result"></p>
 
 </div>
 
-<div id="inspeccionBox" class="hidden">
-
-<p><b>Distritos sin costo adicional:</b><br>
-San Isidro, San Borja, Miraflores, Surco, Jesús María, Magdalena</p>
-
-<button onclick="mostrarTabla()">Ver servicios</button>
-
-<div id="tablaServicios"></div>
-
-</div>
-
-<div id="agenda" class="hidden">
-<h2>Agendar</h2>
-<label>Fecha</label>
-<input type="date">
-<label>Hora</label>
-<input type="time">
-<label>Nombre</label>
-<input>
-<button>Confirmar</button>
-</div>
-
-</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <script>
 
-function cambiarFlujo(){
-let tipo=document.getElementById('tipo').value;
+const SUPABASE_URL="https://lseahxqxcnmwfruoaubt.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
 
-document.getElementById('busquedaBox').classList.add('hidden');
-document.getElementById('inspeccionBox').classList.add('hidden');
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-if(tipo==='busqueda') document.getElementById('busquedaBox').classList.remove('hidden');
-if(tipo==='inspeccion') document.getElementById('inspeccionBox').classList.remove('hidden');
-}
+emailjs.init("UkGXNPeSB4mTuUiF1");
 
-function cotizarBusqueda(){
-let presupuesto=parseFloat(document.getElementById('presupuestoBusqueda').value);
+async function loadServices(){
+
+const {data}=await db.from("services").select("*");
+
 let html="";
 
-if(presupuesto>=25000){
-let precio=Math.min(presupuesto*0.025,690).toFixed(2);
-html=`
-<div class="card">
-<h3>Servicio Exclusive</h3>
-<p>Incluye búsqueda completa, revisión mecánica, legal y negociación.</p>
-<p><b>Precio: USD ${precio}</b></p>
-<button onclick="mostrarAgenda()">Aceptar</button>
-</div>`;
-}else{
-html=`
-<div class="card">
-<p>No cumple con el requisito mínimo de $25,000 USD.</p>
-<p>Podemos hacer una excepción por <b>USD 500</b></p>
-<button onclick="mostrarAgenda()">Aceptar excepción</button>
-<button onclick="cambiarFlujo();document.getElementById('tipo').value='inspeccion';cambiarFlujo();">Ver inspección</button>
-</div>`;
+data.forEach(s=>html+=`<option value="${s.id}">${s.name}</option>`);
+
+document.getElementById("services").innerHTML=html;
+
 }
 
-document.getElementById('resultadoBusqueda').innerHTML=html;
+async function loadTimes(){
+
+const date=document.getElementById("date").value;
+
+if(!date)return;
+
+const now=new Date();
+const todayStr=now.toISOString().split("T")[0];
+
+if(new Date(date)<new Date(todayStr)){
+document.getElementById("time").innerHTML="";
+return;
 }
 
-function mostrarTabla(){
-let html=`
-<table style="width:100%;margin-top:15px">
-<tr><th>Servicio</th><th>Básico</th><th>Mecánico</th><th>Premium</th></tr>
-<tr><td>Escaneo</td><td>✔</td><td>✔</td><td>✔</td></tr>
-<tr><td>Mecánica</td><td>—</td><td>✔</td><td>✔</td></tr>
-<tr><td>Legal</td><td>—</td><td>—</td><td>✔</td></tr>
-<tr><td>Precio</td><td>S/230</td><td>S/260</td><td>S/350</td></tr>
-</table>
-<button onclick="mostrarAgenda()">Agendar</button>
-`;
+const {data:ap}=await db.from("appointments").select("*").eq("date",date);
 
-document.getElementById('tablaServicios').innerHTML=html;
+const {data:bl}=await db.from("blocked_times").select("*").eq("date",date);
+
+const allTimes=["08:00","10:30","13:00","15:30"];
+
+const occupied=[...ap.map(a=>a.time),...bl.map(b=>b.time)];
+
+const free=allTimes.filter(t=>!occupied.includes(t));
+
+let html="";
+free.forEach(t=>html+=`<option>${t}</option>`);
+
+document.getElementById("time").innerHTML=html;
+
 }
 
-function mostrarAgenda(){
-document.getElementById('agenda').classList.remove('hidden');
+async function book(){
+
+const fileInput=document.getElementById("voucher");
+
+if(fileInput.files.length===0){
+
+document.getElementById("result").textContent="Debes subir comprobante";
+
+return;
+
 }
+
+const service_id=document.getElementById("services").value;
+const service_name=document.getElementById("services").selectedOptions[0].text;
+
+const client_name=document.getElementById("name").value;
+const client_email=document.getElementById("email").value;
+const direccion=document.getElementById("direccion").value;
+
+const date=document.getElementById("date").value;
+const time=document.getElementById("time").value;
+
+const payment_method=document.getElementById("payment_method").value;
+
+const file=fileInput.files[0];
+const fileName=Date.now()+"_"+file.name;
+
+await db.storage.from("yape-comprobantes").upload(fileName,file);
+
+const {data:publicUrl}=db.storage.from("yape-comprobantes").getPublicUrl(fileName);
+
+let {data:cita}=await db.from("appointments").insert({
+
+service_id,
+client_name,
+client_email,
+direccion,
+date,
+time,
+payment_method,
+status:"pending",
+created_at:new Date().toISOString()
+
+}).select().single();
+
+await db.from("yape_payments").insert({
+
+cita_id:cita.id,
+imagen_url:publicUrl.publicUrl,
+created_at:new Date().toISOString()
+
+});
+
+emailjs.send("service_predicar","template_o86gqs6",{
+
+nombre:client_name,
+email:client_email,
+servicio:service_name,
+fecha:date,
+hora:time,
+direccion:direccion,
+pago:payment_method
+
+});
+
+document.getElementById("result").textContent="Cita registrada correctamente";
+
+/* limpiar */
+
+document.getElementById("services").value="";
+document.getElementById("date").value="";
+document.getElementById("time").innerHTML="";
+document.getElementById("name").value="";
+document.getElementById("email").value="";
+document.getElementById("direccion").value="";
+document.getElementById("voucher").value="";
+
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+loadServices();
+
+document.getElementById("date").onchange=loadTimes;
+
+});
 
 </script>
 
