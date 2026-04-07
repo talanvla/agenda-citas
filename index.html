@@ -31,10 +31,10 @@ button:hover{background:#1f45cc}
 
 <div class="hero">
 <div class="hero-images">
-<img src="https://images.unsplash.com/photo-1549924231-f129b911e442">
-<img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70">
-<img src="https://images.unsplash.com/photo-1542362567-b07e54358753">
-<img src="https://images.unsplash.com/photo-1493238792000-8113da705763">
+<img src="imagen5.jpg">
+<img src="imagen6.jpg">
+<img src="imagen7.jpg">
+<img src="imagen8.jpg">
 </div>
 </div>
 
@@ -53,6 +53,10 @@ La revisión es realizada por un <b>ingeniero mecatrónico con experiencia en di
 
 <p style="line-height:1.6;color:#444;">
 Selecciona el tipo de servicio según tu necesidad y obtén una recomendación clara antes de tomar una decisión de compra.
+</p>
+
+<p style="line-height:1.6;color:#444;">
+<b>Predicar</b> fue fundada por <b>Andres</b>, ingeniero mecatrónico por la PUCP con más de 7 años de experiencia en el sector automotriz, trabajando con marcas como Tesla, Audi, McLaren, Nissan, Ferrari y Volkswagen, entre otras.
 </p>
 
 <label>Tipo de servicio</label>
@@ -142,9 +146,9 @@ async function cotizar(){
 let tipo=document.getElementById("tipoServicio").value;
 let presupuesto=document.getElementById("presupuesto").value;
 
-let mecanico=180;
-let premium=250;
-let buscar=300;
+let mecanico=260;
+let premium=350;
+let buscar=230;
 
 let html=`<h3>Opciones recomendadas</h3>`;
 
@@ -156,19 +160,35 @@ html+=`
 <button onclick="mostrarAgenda()">Elegir</button>
 </div>`;
 }else{
+
 html+=`
 <div class="card mecanico">
-<h4>🔧 Mecánico - S/ ${mecanico}</h4>
-<p>Revisión mecánica + escaneo completo del vehículo.</p>
+<img src="imagen9.jpg" style="width:100%;border-radius:10px;margin-bottom:10px;">
+<h4>🔧 Servicio Mecánico - S/ ${mecanico}</h4>
+<table style="width:100%;margin-top:10px;border-collapse:collapse;font-size:14px;">
+<tr><td>✔ Revisión completa de sistemas</td></tr>
+<tr><td>✔ Detección de choques</td></tr>
+<tr><td>✔ Fallas mecánicas ocultas</td></tr>
+<tr><td>✔ Validación de kilometraje</td></tr>
+<tr><td>✔ Diagnóstico de airbags</td></tr>
+</table>
 <button onclick="mostrarAgenda()">Elegir</button>
 </div>
 
 <div class="card premium">
-<h4>🚗 Premium - S/ ${premium}</h4>
-<p>Incluye revisión mecánica, electrónica y validación legal completa.</p>
+<img src="imagen10.jpg" style="width:100%;border-radius:10px;margin-bottom:10px;">
+<h4>🚗 Servicio Premium - S/ ${premium}</h4>
+<table style="width:100%;margin-top:10px;border-collapse:collapse;font-size:14px;">
+<tr><td>✔ Todo lo del servicio mecánico</td></tr>
+<tr><td>✔ Informe de robos</td></tr>
+<tr><td>✔ Papeletas y antecedentes</td></tr>
+<tr><td>✔ Informe profesional en PDF</td></tr>
+<tr><td>✔ Historial de precios por dueño</td></tr>
+</table>
 <button onclick="mostrarAgenda()">Elegir</button>
 </div>`;
 }
+
 
 document.getElementById("cotizacionResultado").innerHTML=html;
 }
