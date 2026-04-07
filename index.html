@@ -110,6 +110,27 @@ border:1px solid #ddd;
 
 <h1>Agenda tu cita</h1>
 
+<!-- 🔥 STORYTELLING -->
+<div style="margin-top:10px;color:#444;line-height:1.6;">
+
+<p>
+Antes de comprar un auto usado, es clave conocer su estado real más allá de lo visible. Muchas fallas no se detectan a simple vista y pueden representar una pérdida económica importante.
+</p>
+
+<p>
+La evaluación es realizada por un <b>ingeniero mecatrónico con experiencia en diseño automotriz</b>, capaz de identificar fallas ocultas, manipulaciones y riesgos que un chequeo convencional no detecta.
+</p>
+
+<p>
+<b>Predicar</b> fue fundada por <b>Andres</b>, ingeniero mecatrónico por la PUCP con más de 7 años de experiencia en el sector automotriz, trabajando con marcas como Tesla, Audi, McLaren, Nissan, Ferrari y Volkswagen.
+</p>
+
+<p>
+Obtén una evaluación profesional antes de tomar una decisión y evita comprar un vehículo con problemas ocultos.
+</p>
+
+</div>
+
 <h3>Galería</h3>
 
 <img src="/imagen1.jpg" style="max-width:200px;margin-right:8px">
@@ -117,7 +138,7 @@ border:1px solid #ddd;
 <img src="/imagen3.jpg" style="max-width:200px;margin-right:8px">
 <img src="/imagen4.jpg" style="max-width:200px">
 
-<!-- 🔥 TABLA AGREGADA -->
+<!-- 🔥 TABLA -->
 <div style="margin-top:20px;">
 
 <h3>Comparación de servicios</h3>
@@ -178,7 +199,6 @@ border:1px solid #ddd;
 </table>
 
 </div>
-<!-- 🔥 FIN TABLA -->
 
 <h3>Distritos con cobertura:</h3>
 
@@ -238,7 +258,7 @@ Telefono: +51972598538
 <script>
 
 const SUPABASE_URL="https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
 
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
@@ -252,7 +272,6 @@ document.getElementById("services").innerHTML=html;
 }
 
 async function loadTimes(){
-
 const date=document.getElementById("date").value;
 if(!date)return;
 
@@ -276,7 +295,6 @@ let html="";
 free.forEach(t=>html+=`<option>${t}</option>`);
 
 document.getElementById("time").innerHTML=html;
-
 }
 
 async function book(){
