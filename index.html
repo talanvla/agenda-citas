@@ -22,6 +22,8 @@ button:hover{background:#1f45cc}
 .card{padding:15px;border-radius:10px;margin-bottom:10px}
 .mecanico{background:#eef2ff}
 .premium{background:#e8fff4}
+.buscar{background:#fff7e6}
+.hidden{display:none}
 </style>
 </head>
 
@@ -32,12 +34,58 @@ button:hover{background:#1f45cc}
 <img src="https://images.unsplash.com/photo-1549924231-f129b911e442">
 <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70">
 <img src="https://images.unsplash.com/photo-1542362567-b07e54358753">
+<img src="https://images.unsplash.com/photo-1493238792000-8113da705763">
 </div>
 </div>
 
-<div class="container">
+<div class="container" id="cotizarSection">
 
-<h1>Agenda tu cita</h1>
+<h1>💰 Cotizar servicio</h1>
+
+<p style="margin-top:10px;line-height:1.6;color:#444;">
+Antes de comprar un auto usado, es clave conocer su estado real más allá de lo visible. 
+En Predicar realizamos evaluaciones técnicas con enfoque profesional, combinando experiencia práctica y criterios de ingeniería.
+</p>
+
+<p style="line-height:1.6;color:#444;">
+La revisión es realizada por un <b>ingeniero mecatrónico con experiencia en diseño automotriz</b>, lo que permite detectar fallas ocultas, manipulaciones o riesgos futuros que un chequeo común no identifica.
+</p>
+
+<p style="line-height:1.6;color:#444;">
+Selecciona el tipo de servicio según tu necesidad y obtén una recomendación clara antes de tomar una decisión de compra.
+</p>
+
+<label>Tipo de servicio</label>
+<select id="tipoServicio" onchange="toggleRevision()">
+<option value="buscar">Buscar auto</option>
+<option value="inspeccionar">Inspeccionar auto</option>
+</select>
+
+<div id="revisionBox">
+<label>Tipo de revisión</label>
+<select id="nivelServicio">
+<option value="basico">Solo escaneo</option>
+<option value="mecanico">Mecánica + escaneo</option>
+<option value="premium">Mecánica + electrónica + legal</option>
+</select>
+</div>
+
+<label>Modelo</label>
+<input id="modelo">
+
+<label>Año</label>
+<input type="number" id="anio">
+
+<label>Presupuesto (USD)</label>
+<input type="number" id="presupuesto">
+
+<button onclick="cotizar()">Generar cotización</button>
+
+<div id="cotizacionResultado"></div>
+
+<div id="agendaSection" class="hidden">
+<hr>
+<h2>Agendar servicio</h2>
 
 <label>Servicio</label>
 <select id="services"></select>
@@ -69,35 +117,6 @@ button:hover{background:#1f45cc}
 <button onclick="book()">Agendar</button>
 
 <p id="result"></p>
-
-<div class="section">
-<h2>💰 Cotizar servicio</h2>
-
-<label>Tipo de servicio</label>
-<select id="tipoServicio">
-<option value="buscar">Buscar auto</option>
-<option value="inspeccionar">Inspeccionar auto</option>
-</select>
-
-<label>Tipo de revisión</label>
-<select id="nivelServicio">
-<option value="basico">Solo escaneo</option>
-<option value="mecanico">Mecánica + escaneo</option>
-<option value="premium">Mecánica + electrónica + legal</option>
-</select>
-
-<label>Modelo</label>
-<input id="modelo">
-
-<label>Año</label>
-<input type="number" id="anio">
-
-<label>Presupuesto</label>
-<input type="number" id="presupuesto">
-
-<button onclick="cotizar()">Generar cotización</button>
-
-<div id="cotizacionResultado"></div>
 </div>
 
 </div>
@@ -112,6 +131,52 @@ const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 emailjs.init("UkGXNPeSB4mTuUiF1");
+
+function toggleRevision(){
+let tipo=document.getElementById("tipoServicio").value;
+document.getElementById("revisionBox").style.display = (tipo==="buscar") ? "none" : "block";
+}
+
+async function cotizar(){
+
+let tipo=document.getElementById("tipoServicio").value;
+let presupuesto=document.getElementById("presupuesto").value;
+
+let mecanico=180;
+let premium=250;
+let buscar=300;
+
+let html=`<h3>Opciones recomendadas</h3>`;
+
+if(tipo==="buscar"){
+html+=`
+<div class="card buscar">
+<h4>🔎 Búsqueda completa - S/ ${buscar}</h4>
+<p>Nos encargamos de encontrar el mejor vehículo según tu presupuesto y necesidades.</p>
+<button onclick="mostrarAgenda()">Elegir</button>
+</div>`;
+}else{
+html+=`
+<div class="card mecanico">
+<h4>🔧 Mecánico - S/ ${mecanico}</h4>
+<p>Revisión mecánica + escaneo completo del vehículo.</p>
+<button onclick="mostrarAgenda()">Elegir</button>
+</div>
+
+<div class="card premium">
+<h4>🚗 Premium - S/ ${premium}</h4>
+<p>Incluye revisión mecánica, electrónica y validación legal completa.</p>
+<button onclick="mostrarAgenda()">Elegir</button>
+</div>`;
+}
+
+document.getElementById("cotizacionResultado").innerHTML=html;
+}
+
+function mostrarAgenda(){
+document.getElementById("agendaSection").classList.remove("hidden");
+document.getElementById("agendaSection").scrollIntoView({behavior:"smooth"});
+}
 
 async function loadServices(){
 const {data}=await db.from("services").select("*");
@@ -147,39 +212,9 @@ service_id,client_name,client_email,direccion,date,time
 document.getElementById("result").textContent="Cita registrada";
 }
 
-async function cotizar(){
-
-const {data}=await db.from("appointments").select("*");
-
-let citasSemana=data.length;
-let citasMes=data.length;
-
-let mecanico=180;
-let premium=250;
-
-let html=`
-<h3>Disponibilidad</h3>
-<p>Semana: ${citasSemana}</p>
-<p>Mes: ${citasMes}</p>
-
-<h3>Cotización</h3>
-
-<div class="card mecanico">
-<h4>Mecánico - S/ ${mecanico}</h4>
-<p>Revisión mecánica + escaneo completo.</p>
-</div>
-
-<div class="card premium">
-<h4>Premium - S/ ${premium}</h4>
-<p>Mecánica + electrónica + legal completa.</p>
-</div>
-`;
-
-document.getElementById("cotizacionResultado").innerHTML=html;
-}
-
 loadServices();
 document.getElementById("date").onchange=loadTimes;
+toggleRevision();
 
 </script>
 
