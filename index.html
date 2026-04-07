@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Predicar - Sistema Completo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -18,11 +17,7 @@ label{font-weight:600;display:block;margin-top:15px}
 input,select{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc}
 button{margin-top:20px;background:#2d5bff;color:white;border:none;padding:14px;width:100%;border-radius:10px;cursor:pointer}
 button:hover{background:#1f45cc}
-.section{margin-top:40px}
-.card{padding:15px;border-radius:10px;margin-bottom:10px}
-.mecanico{background:#eef2ff}
-.premium{background:#e8fff4}
-.buscar{background:#fff7e6}
+.card{padding:15px;border-radius:10px;margin-top:15px}
 .hidden{display:none}
 </style>
 </head>
@@ -31,224 +26,120 @@ button:hover{background:#1f45cc}
 
 <div class="hero">
 <div class="hero-images">
-<table style="width:100%;background:white;border-radius:12px;overflow:hidden;font-size:14px;">
-<tr style="background:#111;color:white;">
-<th style="padding:10px">Características</th>
-<th>Básico</th>
-<th>Mecánico</th>
-<th>Premium</th>
-<th>Exclusive</th>
-</tr>
-
-<tr><td style="padding:8px">Escaneo de códigos</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
-<tr><td style="padding:8px">Revisión mecánica completa</td><td>—</td><td>✔</td><td>✔</td><td>✔</td></tr>
-<tr><td style="padding:8px">Detección de choques</td><td>—</td><td>✔</td><td>✔</td><td>✔</td></tr>
-<tr><td style="padding:8px">Validación de kilometraje</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
-<tr><td style="padding:8px">Informe legal</td><td>—</td><td>—</td><td>✔</td><td>✔</td></tr>
-<tr><td style="padding:8px">Informe PDF</td><td>—</td><td>—</td><td>✔</td><td>✔</td></tr>
-<tr><td style="padding:8px">Negociación de precio</td><td>—</td><td>—</td><td>—</td><td>✔</td></tr>
-<tr><td style="padding:8px">Búsqueda del vehículo</td><td>—</td><td>—</td><td>—</td><td>✔</td></tr>
-</table>
+<img src="imagen5.jpg">
+<img src="imagen6.jpg">
+<img src="imagen7.jpg">
+<img src="imagen8.jpg">
 </div>
 </div>
 
-<div class="container" id="cotizarSection">
+<div class="container">
 
-<h1>💰 Cotizar servicio</h1>
+<h1>¿Qué deseas cotizar?</h1>
 
-<p style="margin-top:10px;line-height:1.6;color:#444;">
-Antes de comprar un auto usado, es clave conocer su estado real más allá de lo visible. 
-En Predicar realizamos evaluaciones técnicas con enfoque profesional, combinando experiencia práctica y criterios de ingeniería.
-</p>
-
-<p style="line-height:1.6;color:#444;">
-La revisión es realizada por un <b>ingeniero mecatrónico con experiencia en diseño automotriz</b>, lo que permite detectar fallas ocultas, manipulaciones o riesgos futuros que un chequeo común no identifica.
-</p>
-
-<p style="line-height:1.6;color:#444;">
-Selecciona el tipo de servicio según tu necesidad y obtén una recomendación clara antes de tomar una decisión de compra.
-</p>
-
-<p style="line-height:1.6;color:#444;">
-<b>Predicar</b> fue fundada por <b>Andres</b>, ingeniero mecatrónico por la PUCP con más de 7 años de experiencia en el sector automotriz, trabajando con marcas como Tesla, Audi, McLaren, Nissan, Ferrari y Volkswagen, entre otras.
-</p>
-
-<label>Tipo de servicio</label>
-<select id="tipoServicio" onchange="toggleRevision()">
-<option value="buscar">Buscar auto</option>
-<option value="inspeccionar">Inspeccionar auto</option>
+<select id="tipo" onchange="cambiarFlujo()">
+<option value="">Seleccionar</option>
+<option value="busqueda">Búsqueda</option>
+<option value="inspeccion">Inspección</option>
 </select>
 
-<div id="revisionBox">
-<label>Tipo de revisión</label>
-<select id="nivelServicio">
-<option value="basico">Solo escaneo</option>
-<option value="mecanico">Mecánica + escaneo</option>
-<option value="premium">Mecánica + electrónica + legal</option>
-</select>
-</div>
-
-<label>Modelo</label>
-<input id="modelo">
-
-<label>Año</label>
-<input type="number" id="anio">
-
-<label>Presupuesto (USD)</label>
-<input type="number" id="presupuesto">
-
-<button onclick="cotizar()">Generar cotización</button>
-
-<div id="cotizacionResultado"></div>
-
-<div id="agendaSection" class="hidden">
-<hr>
-<h2>Agendar servicio</h2>
-
-<label>Servicio</label>
-<select id="services"></select>
-
-<label>Fecha</label>
-<input type="date" id="date">
-
-<label>Hora</label>
-<select id="time"></select>
+<div id="busquedaBox" class="hidden">
 
 <label>Nombre</label>
-<input type="text" id="name">
+<input id="nombreBusqueda">
 
-<label>Email</label>
-<input type="email" id="email">
+<label>Modelo del auto</label>
+<input id="modeloBusqueda">
 
-<label>Dirección</label>
-<input type="text" id="direccion">
+<label>Presupuesto (USD)</label>
+<input type="number" id="presupuestoBusqueda">
 
-<label>Método de pago</label>
-<select id="payment_method">
-<option value="yape">Yape</option>
-<option value="plin">Plin</option>
-</select>
+<button onclick="cotizarBusqueda()">Cotizar búsqueda</button>
 
-<label>Subir comprobante</label>
-<input type="file" id="voucher">
-
-<button onclick="book()">Agendar</button>
-
-<p id="result"></p>
-</div>
+<div id="resultadoBusqueda"></div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<div id="inspeccionBox" class="hidden">
+
+<p><b>Distritos sin costo adicional:</b><br>
+San Isidro, San Borja, Miraflores, Surco, Jesús María, Magdalena</p>
+
+<button onclick="mostrarTabla()">Ver servicios</button>
+
+<div id="tablaServicios"></div>
+
+</div>
+
+<div id="agenda" class="hidden">
+<h2>Agendar</h2>
+<label>Fecha</label>
+<input type="date">
+<label>Hora</label>
+<input type="time">
+<label>Nombre</label>
+<input>
+<button>Confirmar</button>
+</div>
+
+</div>
 
 <script>
 
-const SUPABASE_URL="https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+function cambiarFlujo(){
+let tipo=document.getElementById('tipo').value;
 
-const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-emailjs.init("UkGXNPeSB4mTuUiF1");
+document.getElementById('busquedaBox').classList.add('hidden');
+document.getElementById('inspeccionBox').classList.add('hidden');
 
-function toggleRevision(){
-let tipo=document.getElementById("tipoServicio").value;
-document.getElementById("revisionBox").style.display = (tipo==="buscar") ? "none" : "block";
+if(tipo==='busqueda') document.getElementById('busquedaBox').classList.remove('hidden');
+if(tipo==='inspeccion') document.getElementById('inspeccionBox').classList.remove('hidden');
 }
 
-async function cotizar(){
+function cotizarBusqueda(){
+let presupuesto=parseFloat(document.getElementById('presupuestoBusqueda').value);
+let html="";
 
-let tipo=document.getElementById("tipoServicio").value;
-let presupuesto=document.getElementById("presupuesto").value;
-
-let mecanico=260;
-let premium=350;
-let buscar=230;
-
-let html=`<h3>Opciones recomendadas</h3>`;
-
-if(tipo==="buscar"){
-html+=`
-<div class="card buscar">
-<h4>🔎 Búsqueda completa - S/ ${buscar}</h4>
-<p>Nos encargamos de encontrar el mejor vehículo según tu presupuesto y necesidades.</p>
-<button onclick="mostrarAgenda()">Elegir</button>
+if(presupuesto>=25000){
+let precio=Math.min(presupuesto*0.025,690).toFixed(2);
+html=`
+<div class="card">
+<h3>Servicio Exclusive</h3>
+<p>Incluye búsqueda completa, revisión mecánica, legal y negociación.</p>
+<p><b>Precio: USD ${precio}</b></p>
+<button onclick="mostrarAgenda()">Aceptar</button>
 </div>`;
 }else{
-
-html+=`
-<div class="card mecanico">
-<img src="imagen9.jpg" style="width:100%;border-radius:10px;margin-bottom:10px;">
-<h4>🔧 Servicio Mecánico - S/ ${mecanico}</h4>
-<table style="width:100%;margin-top:10px;border-collapse:collapse;font-size:14px;">
-<tr><td>✔ Revisión completa de sistemas</td></tr>
-<tr><td>✔ Detección de choques</td></tr>
-<tr><td>✔ Fallas mecánicas ocultas</td></tr>
-<tr><td>✔ Validación de kilometraje</td></tr>
-<tr><td>✔ Diagnóstico de airbags</td></tr>
-</table>
-<button onclick="mostrarAgenda()">Elegir</button>
-</div>
-
-<div class="card premium">
-<img src="imagen10.jpg" style="width:100%;border-radius:10px;margin-bottom:10px;">
-<h4>🚗 Servicio Premium - S/ ${premium}</h4>
-<table style="width:100%;margin-top:10px;border-collapse:collapse;font-size:14px;">
-<tr><td>✔ Todo lo del servicio mecánico</td></tr>
-<tr><td>✔ Informe de robos</td></tr>
-<tr><td>✔ Papeletas y antecedentes</td></tr>
-<tr><td>✔ Informe profesional en PDF</td></tr>
-<tr><td>✔ Historial de precios por dueño</td></tr>
-</table>
-<button onclick="mostrarAgenda()">Elegir</button>
+html=`
+<div class="card">
+<p>No cumple con el requisito mínimo de $25,000 USD.</p>
+<p>Podemos hacer una excepción por <b>USD 500</b></p>
+<button onclick="mostrarAgenda()">Aceptar excepción</button>
+<button onclick="cambiarFlujo();document.getElementById('tipo').value='inspeccion';cambiarFlujo();">Ver inspección</button>
 </div>`;
 }
 
+document.getElementById('resultadoBusqueda').innerHTML=html;
+}
 
-document.getElementById("cotizacionResultado").innerHTML=html;
+function mostrarTabla(){
+let html=`
+<table style="width:100%;margin-top:15px">
+<tr><th>Servicio</th><th>Básico</th><th>Mecánico</th><th>Premium</th></tr>
+<tr><td>Escaneo</td><td>✔</td><td>✔</td><td>✔</td></tr>
+<tr><td>Mecánica</td><td>—</td><td>✔</td><td>✔</td></tr>
+<tr><td>Legal</td><td>—</td><td>—</td><td>✔</td></tr>
+<tr><td>Precio</td><td>S/230</td><td>S/260</td><td>S/350</td></tr>
+</table>
+<button onclick="mostrarAgenda()">Agendar</button>
+`;
+
+document.getElementById('tablaServicios').innerHTML=html;
 }
 
 function mostrarAgenda(){
-document.getElementById("agendaSection").classList.remove("hidden");
-document.getElementById("agendaSection").scrollIntoView({behavior:"smooth"});
+document.getElementById('agenda').classList.remove('hidden');
 }
-
-async function loadServices(){
-const {data}=await db.from("services").select("*");
-let html="";
-data.forEach(s=>html+=`<option value="${s.id}">${s.name}</option>`);
-document.getElementById("services").innerHTML=html;
-}
-
-async function loadTimes(){
-const date=document.getElementById("date").value;
-if(!date)return;
-const {data:ap}=await db.from("appointments").select("*").eq("date",date);
-const allTimes=["08:00","10:30","13:00","15:30"];
-const occupied=ap.map(a=>a.time);
-const free=allTimes.filter(t=>!occupied.includes(t));
-let html="";
-free.forEach(t=>html+=`<option>${t}</option>`);
-document.getElementById("time").innerHTML=html;
-}
-
-async function book(){
-const service_id=document.getElementById("services").value;
-const client_name=document.getElementById("name").value;
-const client_email=document.getElementById("email").value;
-const direccion=document.getElementById("direccion").value;
-const date=document.getElementById("date").value;
-const time=document.getElementById("time").value;
-
-await db.from("appointments").insert({
-service_id,client_name,client_email,direccion,date,time
-});
-
-document.getElementById("result").textContent="Cita registrada";
-}
-
-loadServices();
-document.getElementById("date").onchange=loadTimes;
-toggleRevision();
 
 </script>
 
