@@ -88,6 +88,10 @@ font-weight:600;
 text-align:center;
 }
 
+table, th, td {
+border:1px solid #ddd;
+}
+
 </style>
 </head>
 
@@ -95,10 +99,10 @@ text-align:center;
 
 <div class="hero">
 <div class="hero-images">
-<img src="/imagen5.jpg" style="max-width:300px;margin-right:8px">
-<img src="/imagen6.jpg" style="max-width:300px;margin-right:8px">
-<img src="/imagen7.jpg" style="max-width:300px;margin-right:8px">
-<img src="/imagen8.jpg" style="max-width:300px">
+<img src="/imagen5.jpg">
+<img src="/imagen6.jpg">
+<img src="/imagen7.jpg">
+<img src="/imagen8.jpg">
 </div>
 </div>
 
@@ -113,13 +117,75 @@ text-align:center;
 <img src="/imagen3.jpg" style="max-width:200px;margin-right:8px">
 <img src="/imagen4.jpg" style="max-width:200px">
 
+<!-- 🔥 TABLA AGREGADA -->
+<div style="margin-top:20px;">
+
+<h3>Comparación de servicios</h3>
+
+<table style="width:100%;border-collapse:collapse;text-align:center;font-size:14px;">
+
+<tr style="background:#111;color:white;">
+<th style="padding:10px">Características</th>
+<th>Básico</th>
+<th>Mecánico</th>
+<th>Premium</th>
+<th>Exclusive</th>
+</tr>
+
+<tr>
+<td style="padding:8px;text-align:left">Escaneo electrónico</td>
+<td>✔</td><td>✔</td><td>✔</td><td>✔</td>
+</tr>
+
+<tr>
+<td style="padding:8px;text-align:left">Revisión mecánica completa</td>
+<td>—</td><td>✔</td><td>✔</td><td>✔</td>
+</tr>
+
+<tr>
+<td style="padding:8px;text-align:left">Detección de choques</td>
+<td>—</td><td>✔</td><td>✔</td><td>✔</td>
+</tr>
+
+<tr>
+<td style="padding:8px;text-align:left">Validación de kilometraje</td>
+<td>✔</td><td>✔</td><td>✔</td><td>✔</td>
+</tr>
+
+<tr>
+<td style="padding:8px;text-align:left">Informe legal</td>
+<td>—</td><td>—</td><td>✔</td><td>✔</td>
+</tr>
+
+<tr>
+<td style="padding:8px;text-align:left">Negociación del precio</td>
+<td>—</td><td>—</td><td>—</td><td>✔</td>
+</tr>
+
+<tr>
+<td style="padding:8px;text-align:left">Búsqueda del vehículo</td>
+<td>—</td><td>—</td><td>—</td><td>✔</td>
+</tr>
+
+<tr>
+<td style="padding:8px;text-align:left"><b>Precio</b></td>
+<td>S/230</td>
+<td>S/260</td>
+<td>S/360</td>
+<td>USD 690</td>
+</tr>
+
+</table>
+
+</div>
+<!-- 🔥 FIN TABLA -->
+
 <h3>Distritos con cobertura:</h3>
 
 <p>
 Lima:
 San Isidro, San Borja, Miraflores,<br>
 San Miguel, Magdalena, Jesús María, Surco
-
 </p>
 
 <h4>Consideraciones</h4>
@@ -172,28 +238,22 @@ Telefono: +51972598538
 <script>
 
 const SUPABASE_URL="https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
 
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 emailjs.init("UkGXNPeSB4mTuUiF1");
 
 async function loadServices(){
-
 const {data}=await db.from("services").select("*");
-
 let html="";
-
 data.forEach(s=>html+=`<option value="${s.id}">${s.name}</option>`);
-
 document.getElementById("services").innerHTML=html;
-
 }
 
 async function loadTimes(){
 
 const date=document.getElementById("date").value;
-
 if(!date)return;
 
 const now=new Date();
@@ -205,13 +265,11 @@ return;
 }
 
 const {data:ap}=await db.from("appointments").select("*").eq("date",date);
-
 const {data:bl}=await db.from("blocked_times").select("*").eq("date",date);
 
 const allTimes=["08:00","10:30","13:00","15:30"];
 
 const occupied=[...ap.map(a=>a.time),...bl.map(b=>b.time)];
-
 const free=allTimes.filter(t=>!occupied.includes(t));
 
 let html="";
@@ -226,11 +284,8 @@ async function book(){
 const fileInput=document.getElementById("voucher");
 
 if(fileInput.files.length===0){
-
 document.getElementById("result").textContent="Debes subir comprobante";
-
 return;
-
 }
 
 const service_id=document.getElementById("services").value;
@@ -253,7 +308,6 @@ await db.storage.from("yape-comprobantes").upload(fileName,file);
 const {data:publicUrl}=db.storage.from("yape-comprobantes").getPublicUrl(fileName);
 
 let {data:cita}=await db.from("appointments").insert({
-
 service_id,
 client_name,
 client_email,
@@ -263,19 +317,15 @@ time,
 payment_method,
 status:"pending",
 created_at:new Date().toISOString()
-
 }).select().single();
 
 await db.from("yape_payments").insert({
-
 cita_id:cita.id,
 imagen_url:publicUrl.publicUrl,
 created_at:new Date().toISOString()
-
 });
 
 emailjs.send("service_predicar","template_o86gqs6",{
-
 nombre:client_name,
 email:client_email,
 servicio:service_name,
@@ -283,29 +333,15 @@ fecha:date,
 hora:time,
 direccion:direccion,
 pago:payment_method
-
 });
 
 document.getElementById("result").textContent="Cita registrada correctamente";
 
-/* limpiar */
-
-document.getElementById("services").value="";
-document.getElementById("date").value="";
-document.getElementById("time").innerHTML="";
-document.getElementById("name").value="";
-document.getElementById("email").value="";
-document.getElementById("direccion").value="";
-document.getElementById("voucher").value="";
-
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
-
 loadServices();
-
 document.getElementById("date").onchange=loadTimes;
-
 });
 
 </script>
