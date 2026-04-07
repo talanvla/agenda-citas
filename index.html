@@ -17,7 +17,7 @@ label{font-weight:600;display:block;margin-top:15px}
 input,select{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc}
 button{margin-top:20px;background:#2d5bff;color:white;border:none;padding:14px;width:100%;border-radius:10px;cursor:pointer}
 button:hover{background:#1f45cc}
-.card{padding:15px;border-radius:10px;margin-top:15px}
+.card{padding:15px;border-radius:10px;margin-top:15px;background:#fff}
 .hidden{display:none}
 </style>
 </head>
@@ -37,14 +37,16 @@ button:hover{background:#1f45cc}
 
 <h1>¿Qué deseas cotizar?</h1>
 
+<p>Revisión realizada por ingeniero mecatrónico con experiencia en diseño automotriz.</p>
+
 <select id="tipo" onchange="cambiarFlujo()">
 <option value="">Seleccionar</option>
 <option value="busqueda">Búsqueda</option>
 <option value="inspeccion">Inspección</option>
 </select>
 
+<!-- BUSQUEDA -->
 <div id="busquedaBox" class="hidden">
-
 <label>Nombre</label>
 <input id="nombreBusqueda">
 
@@ -55,22 +57,25 @@ button:hover{background:#1f45cc}
 <input type="number" id="presupuestoBusqueda">
 
 <button onclick="cotizarBusqueda()">Cotizar búsqueda</button>
-
 <div id="resultadoBusqueda"></div>
-
 </div>
 
+<!-- INSPECCION -->
 <div id="inspeccionBox" class="hidden">
-
 <p><b>Distritos sin costo adicional:</b><br>
 San Isidro, San Borja, Miraflores, Surco, Jesús María, Magdalena</p>
 
-<button onclick="mostrarTabla()">Ver servicios</button>
+<label>Modelo del auto</label>
+<input id="modeloInspeccion">
 
-<div id="tablaServicios"></div>
+<label>Fecha</label>
+<input type="date" id="fechaInspeccion" onchange="mostrarHorarios()">
 
+<div id="horarios"></div>
+<div id="tablaComparativa"></div>
 </div>
 
+<!-- AGENDA -->
 <div id="agenda" class="hidden">
 <h2>Agendar</h2>
 <label>Fecha</label>
@@ -91,70 +96,142 @@ let tipo=document.getElementById('tipo').value;
 
 document.getElementById('busquedaBox').classList.add('hidden');
 document.getElementById('inspeccionBox').classList.add('hidden');
+document.getElementById('agenda').classList.add('hidden');
 
-if(tipo==='busqueda') document.getElementById('busquedaBox').classList.remove('hidden');
-if(tipo==='inspeccion') document.getElementById('inspeccionBox').classList.remove('hidden');
+if(tipo==='busqueda'){
+document.getElementById('busquedaBox').classList.remove('hidden');
 }
 
+if(tipo==='inspeccion'){
+document.getElementById('inspeccionBox').classList.remove('hidden');
+}
+}
+
+// BUSQUEDA
 function cotizarBusqueda(){
 let presupuesto=parseFloat(document.getElementById('presupuestoBusqueda').value);
 let html="";
 
 if(!presupuesto || presupuesto < 25000){
-html=`
-<div class="card">
-<p>El servicio de búsqueda requiere un presupuesto mínimo de <b>$25,000 USD</b>.</p>
+html=`<div class="card">
+<p>Requiere mínimo <b>$25,000 USD</b>.</p>
 </div>`;
 }else{
 let precio=Math.min(presupuesto*0.025,690).toFixed(2);
-html=`
-<div class="card">
+html=`<div class="card">
 <h3>Servicio Exclusive</h3>
-<p>Incluye búsqueda completa, revisión mecánica, legal y negociación.</p>
+<p>Incluye búsqueda completa, revisión y negociación.</p>
 <p><b>Precio: USD ${precio}</b></p>
-<button onclick="mostrarAgendaBusqueda()">Continuar a agendar</button>
+<button onclick="mostrarAgenda()">Agendar</button>
 </div>`;
 }
 
 document.getElementById('resultadoBusqueda').innerHTML=html;
 }
 
-function mostrarAgendaBusqueda(){
-document.getElementById('agenda').classList.remove('hidden');
-document.getElementById('agenda').scrollIntoView({behavior:'smooth'});
-}</b></p>
-<button onclick="mostrarAgenda()">Aceptar</button>
-</div>`;
-}else{
-html=`
-<div class="card">
-<p>No cumple con el requisito mínimo de $25,000 USD.</p>
-<p>Podemos hacer una excepción por <b>USD 500</b></p>
-<button onclick="mostrarAgenda()">Aceptar excepción</button>
-<button onclick="cambiarFlujo();document.getElementById('tipo').value='inspeccion';cambiarFlujo();">Ver inspección</button>
-</div>`;
+// INSPECCION
+async function mostrarHorarios(){
+
+let fecha = document.getElementById('fechaInspeccion').value;
+if(!fecha) return;
+
+// horarios base
+const allTimes = ["08:00","10:30","13:00","15:30"];
+
+try{
+
+// consulta a supabase
+const { data, error } = await db.from("appointments").select("time").eq("date", fecha);
+
+if(error){
+console.error(error);
+return;
 }
 
-document.getElementById('resultadoBusqueda').innerHTML=html;
+let ocupados = data.map(a => a.time);
+let disponibles = allTimes.filter(t => !ocupados.includes(t));
+
+let html = `
+<label>Horarios disponibles</label>
+<select id="horarioSeleccionado">
+${disponibles.map(h=>`<option>${h}</option>`).join("")}
+</select>
+`;
+
+document.getElementById('horarios').innerHTML = html;
+
+mostrarComparativa();
+
+}catch(e){
+console.error(e);
+}
 }
 
-function mostrarTabla(){
+let servicioSeleccionado = "";
+
+function seleccionarServicio(tipo){
+servicioSeleccionado = tipo;
+mostrarAgenda();
+}
+
+function mostrarComparativa(){
 let html=`
-<table style="width:100%;margin-top:15px">
-<tr><th>Servicio</th><th>Básico</th><th>Mecánico</th><th>Premium</th></tr>
+<table style="width:100%;margin-top:15px;text-align:center;border-collapse:collapse">
+<tr style="background:#111;color:white">
+<th>Servicio</th>
+<th>Básico</th>
+<th>Mecánico</th>
+<th>Premium</th>
+</tr>
+
 <tr><td>Escaneo</td><td>✔</td><td>✔</td><td>✔</td></tr>
 <tr><td>Mecánica</td><td>—</td><td>✔</td><td>✔</td></tr>
 <tr><td>Legal</td><td>—</td><td>—</td><td>✔</td></tr>
-<tr><td>Precio</td><td>S/230</td><td>S/260</td><td>S/350</td></tr>
+<tr><td><b>Precio</b></td><td>S/230</td><td>S/260</td><td>S/360</td></tr>
+
+<tr>
+<td></td>
+<td><button onclick="seleccionarServicio('basico')">Elegir</button></td>
+<td><button onclick="seleccionarServicio('mecanico')">Elegir</button></td>
+<td><button onclick="seleccionarServicio('premium')">Elegir</button></td>
+</tr>
 </table>
-<button onclick="mostrarAgenda()">Agendar</button>
 `;
 
-document.getElementById('tablaServicios').innerHTML=html;
+document.getElementById('tablaComparativa').innerHTML=html;
 }
 
+function mostrarComparativa(){
+let html=`
+<table style="width:100%;margin-top:15px;text-align:center;border-collapse:collapse">
+<tr style="background:#111;color:white">
+<th>Servicio</th>
+<th>Básico</th>
+<th>Mecánico</th>
+<th>Premium</th>
+</tr>
+
+<tr><td>Escaneo</td><td>✔</td><td>✔</td><td>✔</td></tr>
+<tr><td>Mecánica</td><td>—</td><td>✔</td><td>✔</td></tr>
+<tr><td>Legal</td><td>—</td><td>—</td><td>✔</td></tr>
+<tr><td><b>Precio</b></td><td>S/230</td><td>S/260</td><td>S/360</td></tr>
+
+<tr>
+<td></td>
+<td><button onclick="mostrarAgenda()">Elegir</button></td>
+<td><button onclick="mostrarAgenda()">Elegir</button></td>
+<td><button onclick="mostrarAgenda()">Elegir</button></td>
+</tr>
+</table>
+`;
+
+document.getElementById('tablaComparativa').innerHTML=html;
+}
+
+// AGENDA
 function mostrarAgenda(){
 document.getElementById('agenda').classList.remove('hidden');
+document.getElementById('agenda').scrollIntoView({behavior:'smooth'});
 }
 
 </script>
