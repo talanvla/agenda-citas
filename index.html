@@ -172,7 +172,7 @@ data.forEach(s=>html+=`<option value="${s.id}">${s.name}</option>`);
 document.getElementById("services").innerHTML=html;
 }
 
-// 🔥 FUNCIÓN CORREGIDA
+// 🔥 FUNCIÓN COMPLETA FINAL
 async function loadTimes(){
 
 const date=document.getElementById("date").value;
@@ -184,11 +184,25 @@ const todayStr=now.getFullYear()+"-"+
 String(now.getMonth()+1).padStart(2,'0')+"-"+
 String(now.getDate()).padStart(2,'0');
 
+// ❌ Fechas pasadas
 if(date<todayStr){
 document.getElementById("time").innerHTML="";
 return;
 }
 
+// 🔒 BLOQUEO DE DÍAS COMPLETOS
+const {data:blockedDates}=await db
+.from("blocked_dates")
+.select("id")
+.lte("start_date",date)
+.gte("end_date",date);
+
+if(blockedDates && blockedDates.length>0){
+document.getElementById("time").innerHTML="";
+return;
+}
+
+// 📦 Datos de citas y bloqueos
 const {data:ap}=await db.from("appointments").select("*").eq("date",date);
 const {data:bl}=await db.from("blocked_times").select("*").eq("date",date);
 
@@ -214,10 +228,13 @@ parseInt(m),
 0
 );
 
+// 🔴 SOLO SI ES HOY
 if(date===todayStr){
 
+// ❌ Horas pasadas
 if(slot<=now) return false;
 
+// ❌ Menos de 2 horas
 const diffHours=(slot-now)/(1000*60*60);
 if(diffHours<2) return false;
 
