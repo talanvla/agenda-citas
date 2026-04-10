@@ -83,10 +83,10 @@ text-align:center;
 
 <div class="hero">
 <div class="hero-images">
-<img src="/imagen5.jpg" style="max-width:300px;margin-right:8px">
-<img src="/imagen6.jpg" style="max-width:300px;margin-right:8px">
-<img src="/imagen7.jpg" style="max-width:300px;margin-right:8px">
-<img src="/imagen8.jpg" style="max-width:300px">
+<img src="/imagen5.jpg">
+<img src="/imagen6.jpg">
+<img src="/imagen7.jpg">
+<img src="/imagen8.jpg">
 </div>
 </div>
 
@@ -96,15 +96,14 @@ text-align:center;
 
 <h3>Galería</h3>
 
-<img src="/imagen1.jpg" style="max-width:200px;margin-right:8px">
-<img src="/imagen2.jpg" style="max-width:200px;margin-right:8px">
-<img src="/imagen3.jpg" style="max-width:200px;margin-right:8px">
+<img src="/imagen1.jpg" style="max-width:200px">
+<img src="/imagen2.jpg" style="max-width:200px">
+<img src="/imagen3.jpg" style="max-width:200px">
 <img src="/imagen4.jpg" style="max-width:200px">
 
 <h3>Distritos con cobertura:</h3>
 
 <p>
-Lima:
 San Isidro, San Borja, Miraflores,<br>
 San Miguel, Magdalena, Jesús María, Surco
 </p>
@@ -115,10 +114,14 @@ San Miguel, Magdalena, Jesús María, Surco
 Para reservar la cita se debe abonar S/100<br>
 como garantia al yape/plin 955507470 de Andres Talavera.
 <br>
-La diferencia al culminar el servicio.
-<br><br>
-Telefono: +51972598538
+La diferencia al culminar el servicio. <br><br>
+Telefono: +51972598538, IG: @predicar.pe
+<br>
+Para regalarte revisión de dueños, asesorías y más
 </p>
+
+<p>Atentamente</p>
+<p>Ingeniero Mecatronico - Andres Talavera</p>
 
 <label>Servicio</label>
 <select id="services"></select>
@@ -159,7 +162,7 @@ Telefono: +51972598538
 <script>
 
 const SUPABASE_URL="https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI":"anon";
 
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
@@ -172,7 +175,6 @@ data.forEach(s=>html+=`<option value="${s.id}">${s.name}</option>`);
 document.getElementById("services").innerHTML=html;
 }
 
-// 🔥 FUNCIÓN COMPLETA FINAL
 async function loadTimes(){
 
 const date=document.getElementById("date").value;
@@ -184,13 +186,11 @@ const todayStr=now.getFullYear()+"-"+
 String(now.getMonth()+1).padStart(2,'0')+"-"+
 String(now.getDate()).padStart(2,'0');
 
-// ❌ Fechas pasadas
 if(date<todayStr){
 document.getElementById("time").innerHTML="";
 return;
 }
 
-// 🔒 BLOQUEO DE DÍAS COMPLETOS
 const {data:blockedDates}=await db
 .from("blocked_dates")
 .select("id")
@@ -202,7 +202,6 @@ document.getElementById("time").innerHTML="";
 return;
 }
 
-// 📦 Datos de citas y bloqueos
 const {data:ap}=await db.from("appointments").select("*").eq("date",date);
 const {data:bl}=await db.from("blocked_times").select("*").eq("date",date);
 
@@ -228,13 +227,10 @@ parseInt(m),
 0
 );
 
-// 🔴 SOLO SI ES HOY
 if(date===todayStr){
 
-// ❌ Horas pasadas
 if(slot<=now) return false;
 
-// ❌ Menos de 2 horas
 const diffHours=(slot-now)/(1000*60*60);
 if(diffHours<2) return false;
 
@@ -309,15 +305,6 @@ pago:payment_method
 
 document.getElementById("result").textContent="Cita registrada correctamente";
 
-// limpiar
-document.getElementById("services").value="";
-document.getElementById("date").value="";
-document.getElementById("time").innerHTML="";
-document.getElementById("name").value="";
-document.getElementById("email").value="";
-document.getElementById("direccion").value="";
-document.getElementById("voucher").value="";
-
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -328,4 +315,4 @@ document.getElementById("date").onchange=loadTimes;
 </script>
 
 </body>
-</html>
+</html>v
