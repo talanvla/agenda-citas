@@ -356,6 +356,19 @@ pago:payment_method
 
 document.getElementById("result").textContent="Cita registrada correctamente";
 
+// limpiar formulario
+document.getElementById("services").selectedIndex = 0;
+document.getElementById("date").value = "";
+document.getElementById("time").innerHTML = "";
+document.getElementById("name").value = "";
+document.getElementById("email").value = "";
+document.getElementById("direccion").value = "";
+document.getElementById("payment_method").selectedIndex = 0;
+document.getElementById("voucher").value = "";
+
+
+
+
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
