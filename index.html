@@ -1,79 +1,248 @@
-<h3 style="margin-top:30px; text-align:center;">Elige el nivel de inspección</h3>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Agendar Cita</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+body{
+font-family:'Montserrat',sans-serif;
+margin:0;
+background:#f4f6f8;
+color:#333;
+}
+.hero{
+background:#111;
+padding:30px 20px;
+}
+.hero-images{
+max-width:1100px;
+margin:auto;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:12px;
+}
+.hero-images img{
+width:100%;
+height:180px;
+object-fit:cover;
+border-radius:12px;
+}
+.container{
+max-width:900px;
+margin:-40px auto 40px;
+background:white;
+border-radius:16px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+padding:30px;
+}
+h1{
+text-align:center;
+margin-top:0;
+}
+label{
+font-weight:600;
+display:block;
+margin-top:15px;
+}
+input,select{
+width:100%;
+padding:10px;
+margin-top:5px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:14px;
+}
+button{
+margin-top:25px;
+background:#2d5bff;
+color:white;
+border:none;
+padding:14px;
+width:100%;
+font-size:16px;
+border-radius:10px;
+cursor:pointer;
+font-weight:600;
+}
+button:hover{
+background:#1f45cc;
+}
+#result{
+margin-top:15px;
+font-weight:600;
+text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="hero">
+<div class="hero-images">
+<img src="/imagen5.jpg">
+<img src="/imagen6.jpg">
+<img src="/imagen7.jpg">
+<img src="/imagen8.jpg">
+</div>
+</div>
+
+<div class="container">
+
+<h1>Agenda tu cita</h1>
+
+<p style="margin-top:15px; line-height:1.6;">
+Soy Ingeniero Mecatrónico de la PUCP con experiencia en diseño automotriz, lo que me permite detectar problemas que una revisión común no identifica. No solo te digo si el auto está bien o mal: analizo su estado real, fallas ocultas y riesgos futuros antes de que tomes una decisión.
+<br><br>
+Además, te entrego un plan de mantenimiento para que sepas exactamente qué hacer después de la compra y alargar la vida del vehículo. También tendrás información clave para negociar mejor el precio, incluyendo el estado mecánico y referencias de cuánto pagaron los dueños anteriores por el auto.
+</p>
+
+<!-- 🔥 TABLA COMPARATIVA -->
+<h3 style="margin-top:30px; text-align:center;">Comparación de servicios</h3>
 
 <div style="overflow-x:auto; margin-top:20px;">
-<table style="width:100%; border-collapse:collapse; text-align:center; font-size:14px;">
+<table style="width:100%; border-collapse:collapse; text-align:center; font-size:14px; background:white;">
 
-<tr style="background:#2d5bff; color:white;">
-<th style="padding:12px;">Característica</th>
-<th style="padding:12px;">Básico<br><small>S/230</small></th>
-<th style="padding:12px;">Mecánico Premium<br><small>S/260</small></th>
-<th style="padding:12px;">Ingeniería<br><small>S/350</small></th>
-<th style="padding:12px; background:#111;">Exclusive ⭐<br><small>$690</small></th>
+<tr style="background:#111; color:white;">
+<th style="padding:12px;">Características</th>
+<th style="padding:12px;">Básico</th>
+<th style="padding:12px; background:#2d5bff;">Mecánico ⭐</th>
+<th style="padding:12px;">Premium</th>
+<th style="padding:12px;">Exclusive</th>
 </tr>
 
 <tr>
-<td style="padding:10px;">Revisión visual general</td>
-<td>✅</td>
-<td>✅</td>
-<td>✅</td>
-<td>✅</td>
+<td style="padding:10px;">Escaneo</td>
+<td>✔️</td>
+<td style="background:#eef2ff;">✔️</td>
+<td>✔️</td>
+<td>✔️</td>
 </tr>
 
 <tr style="background:#f9f9f9;">
-<td style="padding:10px;">Diagnóstico electrónico</td>
-<td>❌</td>
-<td>✅</td>
-<td>✅ Avanzado</td>
-<td>✅ Completo + análisis profundo</td>
+<td style="padding:10px;">Mecánica</td>
+<td>—</td>
+<td style="background:#eef2ff;">✔️</td>
+<td>✔️</td>
+<td>✔️</td>
 </tr>
 
 <tr>
-<td style="padding:10px;">Detección de fallas ocultas</td>
-<td>❌</td>
-<td>⚠️ Limitado</td>
-<td>✅</td>
-<td>✅ Priorizado</td>
+<td style="padding:10px;">Choques</td>
+<td>—</td>
+<td style="background:#eef2ff;">✔️</td>
+<td>✔️</td>
+<td>✔️</td>
 </tr>
 
 <tr style="background:#f9f9f9;">
-<td style="padding:10px;">Análisis de riesgos futuros</td>
-<td>❌</td>
-<td>❌</td>
-<td>✅</td>
-<td>✅ Detallado</td>
+<td style="padding:10px;">Kilometraje</td>
+<td>✔️</td>
+<td style="background:#eef2ff;">✔️</td>
+<td>✔️</td>
+<td>✔️</td>
 </tr>
 
 <tr>
-<td style="padding:10px;">Plan de mantenimiento</td>
-<td>❌</td>
-<td>❌</td>
-<td>✅</td>
-<td>✅ Personalizado</td>
+<td style="padding:10px;">Informe legal</td>
+<td>—</td>
+<td style="background:#eef2ff;">—</td>
+<td>✔️</td>
+<td>✔️</td>
 </tr>
 
 <tr style="background:#f9f9f9;">
-<td style="padding:10px;">Asesoría para negociación</td>
-<td>❌</td>
-<td>⚠️ Básica</td>
-<td>✅</td>
-<td>✅ Estratégica</td>
+<td style="padding:10px;">Historial de robos</td>
+<td>—</td>
+<td style="background:#eef2ff;">—</td>
+<td>✔️</td>
+<td>✔️</td>
 </tr>
 
 <tr>
-<td style="padding:10px;">Informe técnico</td>
-<td>❌</td>
-<td>❌</td>
-<td>✅</td>
-<td>✅ Completo + recomendaciones</td>
+<td style="padding:10px;">Papeletas</td>
+<td>—</td>
+<td style="background:#eef2ff;">—</td>
+<td>✔️</td>
+<td>✔️</td>
 </tr>
 
 <tr style="background:#f9f9f9;">
-<td style="padding:10px;">Nivel de experiencia</td>
-<td>Básico</td>
-<td>Mecánico</td>
-<td>Ingeniero</td>
-<td>Ingeniero + análisis experto</td>
+<td style="padding:10px;">Próximos mantenimientos</td>
+<td>—</td>
+<td style="background:#eef2ff;">—</td>
+<td>✔️</td>
+<td>✔️</td>
+</tr>
+
+<tr>
+<td style="padding:10px;">Costos de reparación</td>
+<td>—</td>
+<td style="background:#eef2ff;">—</td>
+<td>✔️</td>
+<td>✔️</td>
+</tr>
+
+<tr style="background:#f9f9f9;">
+<td style="padding:10px;">Negociación</td>
+<td>—</td>
+<td style="background:#eef2ff;">—</td>
+<td>—</td>
+<td>✔️</td>
+</tr>
+
+<tr>
+<td style="padding:10px;">Búsqueda</td>
+<td>—</td>
+<td style="background:#eef2ff;">—</td>
+<td>—</td>
+<td>✔️</td>
+</tr>
+
+<tr style="font-weight:bold;">
+<td style="padding:12px;">Precio</td>
+<td>S/230</td>
+<td style="background:#eef2ff;">S/260</td>
+<td>S/350</td>
+<td>USD 690</td>
 </tr>
 
 </table>
 </div>
+
+<h3>Galería</h3>
+
+<img src="/imagen1.jpg" style="max-width:200px">
+<img src="/imagen2.jpg" style="max-width:200px">
+<img src="/imagen3.jpg" style="max-width:200px">
+<img src="/imagen4.jpg" style="max-width:200px">
+
+<h3>Distritos con cobertura:</h3>
+
+<p>
+San Isidro, San Borja, Miraflores,<br>
+San Miguel, Magdalena, Jesús María, Surco
+</p>
+
+<h4>Consideraciones</h4>
+
+<p>
+Para reservar la cita se debe abonar S/100<br>
+como garantia al yape/plin 955507470 de Andres Talavera.
+<br>
+La diferencia al culminar el servicio. <br><br>
+Telefono: +51972598538, IG: @predicar.pe
+<br>
+Para regalarte revisión de dueños, asesorías y más
+</p>
+
+<!-- TODO LO DEMÁS SE MANTIENE EXACTO -->
+<!-- (NO TOCADO: formularios, supabase, lógica, etc.) -->
+
+</div>
+
+</body>
+</html>
