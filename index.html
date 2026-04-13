@@ -39,19 +39,43 @@ border-radius:16px;
 box-shadow:0 10px 30px rgba(0,0,0,0.1);
 padding:30px;
 }
-h1{text-align:center;margin-top:0;}
-label{font-weight:600;display:block;margin-top:15px;}
+h1{
+text-align:center;
+margin-top:0;
+}
+label{
+font-weight:600;
+display:block;
+margin-top:15px;
+}
 input,select{
-width:100%;padding:10px;margin-top:5px;
-border-radius:8px;border:1px solid #ccc;font-size:14px;
+width:100%;
+padding:10px;
+margin-top:5px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:14px;
 }
 button{
-margin-top:25px;background:#2d5bff;color:white;border:none;
-padding:14px;width:100%;font-size:16px;border-radius:10px;
-cursor:pointer;font-weight:600;
+margin-top:25px;
+background:#2d5bff;
+color:white;
+border:none;
+padding:14px;
+width:100%;
+font-size:16px;
+border-radius:10px;
+cursor:pointer;
+font-weight:600;
 }
-button:hover{background:#1f45cc;}
-#result{text-align:center;margin-top:15px;font-weight:600;}
+button:hover{
+background:#1f45cc;
+}
+#result{
+margin-top:15px;
+font-weight:600;
+text-align:center;
+}
 </style>
 </head>
 
@@ -70,10 +94,15 @@ button:hover{background:#1f45cc;}
 
 <h1>Agenda tu cita</h1>
 
+<!-- 🔥 STORYTELLING -->
 <p style="margin-top:15px; line-height:1.6;">
-Soy Ingeniero Mecatrónico de la PUCP con experiencia en diseño automotriz...
+
+Soy Ingeniero Mecatrónico de la PUCP con experiencia en diseño automotriz, lo que me permite detectar problemas que una revisión común no identifica. No solo te digo si el auto está bien o mal: analizo su estado real, fallas ocultas y riesgos futuros antes de que tomes una decisión.
+
 <br><br>
-Además, te entrego un plan de mantenimiento...
+
+Además, te entrego un plan de mantenimiento para que sepas exactamente qué hacer después de la compra y alargar la vida del vehículo. También tendrás información clave para negociar mejor el precio, incluyendo el estado mecánico y referencias de cuánto pagaron los dueños anteriores por el auto.
+
 </p>
 
 <h3>Galería</h3>
@@ -120,6 +149,12 @@ Además, te entrego un plan de mantenimiento...
 </table>
 </div>
 
+
+
+
+
+
+
 <h3>Distritos con cobertura:</h3>
 
 <p>
@@ -133,20 +168,11 @@ San Miguel, Magdalena, Jesús María, Surco
 Para reservar la cita se debe abonar S/100<br>
 como garantia al yape/plin 955507470 de Andres Talavera.
 <br>
-La diferencia al culminar el servicio.
+La diferencia al culminar el servicio. <br><br>
+Telefono: +51972598538, IG: @predicar.pe
+<br>
+Para regalarte revisión de dueños, asesorías y más
 </p>
-
-<!-- 🔥 TURNOS DISPONIBLES -->
-<div id="weeklySlots" style="
-margin-top:20px;
-padding:15px;
-background:#fff3cd;
-border:1px solid #ffeeba;
-border-radius:10px;
-font-weight:600;
-text-align:center;">
-Cargando disponibilidad...
-</div>
 
 <label>Servicio</label>
 <select id="services"></select>
@@ -187,51 +213,166 @@ Cargando disponibilidad...
 <script>
 
 const SUPABASE_URL="https://lseahxqxcnmwfruoaubt.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZWFoeHF4Y25td2ZydW9hdWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMjMyOTUsImV4cCI6MjA4MDg5OTI5NX0.9OsARsYTPXJkpoS4cjGr2Z3Qp_cf5vzesK-0K-S0XEQ";
 
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 emailjs.init("UkGXNPeSB4mTuUiF1");
 
-// 🔥 NUEVO
-async function loadWeeklySlots(){
+async function loadServices(){
+const {data}=await db.from("services").select("*");
+let html="";
+data.forEach(s=>html+=`<option value="${s.id}">${s.name}</option>`);
+document.getElementById("services").innerHTML=html;
+}
 
-const now = new Date();
-const day = now.getDay();
+async function loadTimes(){
 
-const monday = new Date(now);
-monday.setDate(now.getDate() - day + 1);
+const date=document.getElementById("date").value;
+if(!date)return;
 
-const sunday = new Date(monday);
-sunday.setDate(monday.getDate() + 6);
+const now=new Date();
 
-const format = (d)=>{
-return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
-};
+const todayStr=now.getFullYear()+"-"+
+String(now.getMonth()+1).padStart(2,'0')+"-"+
+String(now.getDate()).padStart(2,'0');
 
-const start = format(monday);
-const end = format(sunday);
+if(date<todayStr){
+document.getElementById("time").innerHTML="";
+return;
+}
 
-const totalSlots = 4 * 7;
+const {data:blockedDates}=await db
+.from("blocked_dates")
+.select("id")
+.lte("start_date",date)
+.gte("end_date",date);
 
-const {data:ap}=await db.from("appointments").select("date").gte("date",start).lte("date",end);
-const {data:bl}=await db.from("blocked_times").select("date").gte("date",start).lte("date",end);
-const {data:bd}=await db.from("blocked_dates").select("*").lte("start_date",end).gte("end_date",start);
+if(blockedDates && blockedDates.length>0){
+document.getElementById("time").innerHTML="";
+return;
+}
 
-const occupied = (ap?.length || 0) + (bl?.length || 0);
+const {data:ap}=await db.from("appointments").select("*").eq("date",date);
+const {data:bl}=await db.from("blocked_times").select("*").eq("date",date);
 
-let blockedDays = 0;
-if(bd){bd.forEach(()=>blockedDays++);}
+const allTimes=["08:00","10:30","13:00","15:30"];
 
-const remaining = totalSlots - occupied - (blockedDays * 4);
+const occupied=[
+...(ap||[]).map(a=>a.time),
+...(bl||[]).map(b=>b.time)
+];
 
-document.getElementById("weeklySlots").textContent =
-`Quedan ${remaining > 0 ? remaining : 0} turnos disponibles esta semana`;
+const free=allTimes.filter(t=>{
+
+if(occupied.includes(t)) return false;
+
+const [h,m]=t.split(":");
+
+const slot=new Date(
+now.getFullYear(),
+now.getMonth(),
+now.getDate(),
+parseInt(h),
+parseInt(m),
+0
+);
+
+if(date===todayStr){
+
+if(slot<=now) return false;
+
+const diffHours=(slot-now)/(1000*60*60);
+if(diffHours<2) return false;
+
+}
+
+return true;
+
+});
+
+let html="";
+free.forEach(t=>html+=`<option>${t}</option>`);
+
+document.getElementById("time").innerHTML=html;
+
+}
+
+async function book(){
+
+const fileInput=document.getElementById("voucher");
+
+if(fileInput.files.length===0){
+document.getElementById("result").textContent="Debes subir comprobante";
+return;
+}
+
+const service_id=document.getElementById("services").value;
+const service_name=document.getElementById("services").selectedOptions[0].text;
+
+const client_name=document.getElementById("name").value;
+const client_email=document.getElementById("email").value;
+const direccion=document.getElementById("direccion").value;
+
+const date=document.getElementById("date").value;
+const time=document.getElementById("time").value;
+
+const payment_method=document.getElementById("payment_method").value;
+
+const file=fileInput.files[0];
+const fileName=Date.now()+"_"+file.name;
+
+await db.storage.from("yape-comprobantes").upload(fileName,file);
+
+const {data:publicUrl}=db.storage.from("yape-comprobantes").getPublicUrl(fileName);
+
+let {data:cita}=await db.from("appointments").insert({
+service_id,
+client_name,
+client_email,
+direccion,
+date,
+time,
+payment_method,
+status:"pending",
+created_at:new Date().toISOString()
+}).select().single();
+
+await db.from("yape_payments").insert({
+cita_id:cita.id,
+imagen_url:publicUrl.publicUrl,
+created_at:new Date().toISOString()
+});
+
+emailjs.send("service_predicar","template_o86gqs6",{
+nombre:client_name,
+email:client_email,
+servicio:service_name,
+fecha:date,
+hora:time,
+direccion:direccion,
+pago:payment_method
+});
+
+document.getElementById("result").textContent="Cita registrada correctamente";
+
+// limpiar formulario
+document.getElementById("services").selectedIndex = 0;
+document.getElementById("date").value = "";
+document.getElementById("time").innerHTML = "";
+document.getElementById("name").value = "";
+document.getElementById("email").value = "";
+document.getElementById("direccion").value = "";
+document.getElementById("payment_method").selectedIndex = 0;
+document.getElementById("voucher").value = "";
+
+
+
+
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
 loadServices();
-loadWeeklySlots();
 document.getElementById("date").onchange=loadTimes;
 });
 
