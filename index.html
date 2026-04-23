@@ -266,7 +266,7 @@ return;
 const {data:ap}=await db.from("appointments").select("*").eq("date",date);
 const {data:bl}=await db.from("blocked_times").select("*").eq("date",date);
 
-const allTimes=["08:00","10:30","13:00","15:30"];
+const allTimes=["09:00","11:00","13:00","16:00"];
 
 const occupied=[
 ...(ap||[]).map(a=>a.time),
