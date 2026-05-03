@@ -14,48 +14,80 @@ margin:0;
 background:#f4f6f8;
 color:#333;
 }
+
 .hero{
-background:#111;
-padding:30px 20px;
+background:#fff;
+padding:0;
 }
+
 .hero-images{
-max-width:1100px;
-margin:auto;
+width:100%;
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:12px;
+grid-template-columns:repeat(4,1fr);
+gap:0;
 }
+
 .hero-images img{
 width:100%;
-height:180px;
+height:220px;
 object-fit:cover;
-border-radius:12px;
 }
+
 .container{
-max-width:900px;
-margin:-40px auto 40px;
+max-width:1000px;
+margin:30px auto;
 background:white;
 border-radius:16px;
 box-shadow:0 10px 30px rgba(0,0,0,0.1);
 padding:30px;
 }
+
 h1{
 text-align:center;
 margin-top:0;
 }
+
+.services{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+gap:20px;
+margin-top:30px;
+}
+
+.card{
+border-radius:16px;
+padding:20px;
+background:white;
+box-shadow:0 8px 25px rgba(0,0,0,0.08);
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+}
+
+.price{
+font-size:22px;
+font-weight:700;
+margin:10px 0;
+}
+
 label{
 font-weight:600;
 display:block;
 margin-top:15px;
 }
+
 input,select{
 width:100%;
 padding:10px;
 margin-top:5px;
 border-radius:8px;
-border:1px solid #ccc;
+border:1px solid #e5e7eb;
+background:#f9fafb;
 font-size:14px;
 }
+
 button{
 margin-top:25px;
 background:#2d5bff;
@@ -68,15 +100,19 @@ border-radius:10px;
 cursor:pointer;
 font-weight:600;
 }
+
 button:hover{
 background:#1f45cc;
 }
+
 #result{
 margin-top:15px;
 font-weight:600;
 text-align:center;
 }
 </style>
+
+
 </head>
 
 <body>
@@ -84,13 +120,13 @@ text-align:center;
 <div class="hero">
 <div class="hero-images">
 
-<img src="/imagen10.jpg">
-<img src="/imagen11.jpg">
-<img src="/imagen12.jpg">
-<img src="/imagen13.jpg">
+<img src="imagen10.jpg">
+<img src="imagen11.jpg">
+<img src="imagen12.jpg">
+<img src="imagen13.jpg">
 
 </div>
-
+</div>
 <div class="container">
 
 <h1>Agenda tu cita</h1>
@@ -116,51 +152,48 @@ Además, te entregamos un plan de mantenimiento para que sepas exactamente qué 
 
 <h2 style="text-align:center; margin-top:30px;">Elige tu servicio</h2>
 
-<div style="
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:15px;
-margin-top:20px;
-">
+<div class="services">
 
-<div style="border:2px solid #2d5bff; padding:15px; border-radius:12px;">
+<div class="card" style="border:2px solid #2d5bff;">
+<span style="background:#2d5bff;color:white;padding:4px 10px;border-radius:8px;font-size:12px;">
+RECOMENDADO
+</span>
 <h3>Asesoría Online 💻</h3>
-<p><b>45 USD</b></p>
+<p class="price">45 USD</p>
 <p>Análisis remoto, historial, fallas y recomendación final.</p>
 </div>
 
-<div style="background:#fafafa; padding:15px; border-radius:12px;">
-<h3>Básico</h3>
-<p><b>70 USD</b></p>
+<div class="card">
+<h3>Servicio Básico</h3>
+<p class="price">70 USD</p>
 <p>Escaneo de kilometraje y airbags.</p>
 </div>
 
-<div style="background:#fafafa; padding:15px; border-radius:12px;">
-<h3>Mecánico</h3>
-<p><b>80 USD</b></p>
+<div class="card">
+<h3>Servicio Mecánico</h3>
+<p class="price">80 USD</p>
 <p>Revisión mecánica y electrónica completa + prueba de manejo.</p>
 </div>
 
-<div style="background:#fafafa; padding:15px; border-radius:12px;">
-<h3>Premium</h3>
-<p><b>100 USD</b></p>
+<div class="card">
+<h3>Servicio Premium</h3>
+<p class="price">100 USD</p>
 <p>Incluye revisión legal + informe en PDF con costos.</p>
 </div>
 
-<div style="background:#fff3e6; padding:15px; border-radius:12px;">
-<h3>Exclusive</h3>
-<p><b>550 USD</b></p>
-<p>Búsqueda completa + negociación + notaría (3-6 semanas).</p>
+<div class="card" style="background:#fff3e6;">
+<h3>Servicio Exclusive</h3>
+<p class="price">550 USD</p>
+<p>Búsqueda + negociación + notaría (3-6 semanas).</p>
 </div>
 
-<div style="background:#fff3e6; padding:15px; border-radius:12px;">
-<h3>Exclusive+</h3>
-<p><b>690 USD</b></p>
+<div class="card" style="background:#fff3e6;">
+<h3>Servicio Exclusive+</h3>
+<p class="price">690 USD</p>
 <p>Todo el servicio en 1-3 semanas.</p>
 </div>
 
 </div>
-
 
 
 
