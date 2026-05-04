@@ -175,6 +175,73 @@ background:#eef3ff;
 /* 👆 FIN DEL NUEVO CSS 👆 */
 
 
+.bottom-section{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:30px;
+margin-top:30px;
+}
+
+.info{
+background:#f7f9fc;
+padding:25px;
+border-radius:16px;
+}
+
+.info h3{
+margin-top:0;
+}
+
+.form{
+background:#fff;
+padding:25px;
+border-radius:16px;
+box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+.form label{
+font-size:13px;
+font-weight:600;
+margin-bottom:5px;
+display:block;
+}
+
+.form input,
+.form select{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:1px solid #ddd;
+margin-bottom:15px;
+font-family:'Montserrat',sans-serif;
+}
+
+.form button{
+width:100%;
+padding:15px;
+border:none;
+border-radius:12px;
+background:#2d5bff;
+color:white;
+font-size:16px;
+font-weight:700;
+cursor:pointer;
+transition:0.2s;
+}
+
+.form button:hover{
+background:#1c3ed6;
+}
+
+#result{
+text-align:center;
+margin-top:10px;
+font-weight:600;
+}
+
+
+
+
 
 
 /* 👇 PEGA AQUÍ 👇 */
@@ -316,7 +383,8 @@ Además, te entregamos un plan de mantenimiento para que sepas exactamente qué 
 
 
 
-
+<div class="bottom-section">
+<div class="info">
 
 
 <h3>Distritos con cobertura:</h3>
@@ -348,6 +416,9 @@ Telefono: +51972598538, IG: @predicar.pe
 Para regalarte revisión de dueños, asesorías y más
 </p>
 
+</div>
+<div class="form">
+
 <label>Servicio</label>
 <select id="services"></select>
 
@@ -378,6 +449,10 @@ Para regalarte revisión de dueños, asesorías y más
 <button onclick="book()">Agendar</button>
 
 <p id="result"></p>
+
+</div>
+</div>
+
 
 </div>
 
