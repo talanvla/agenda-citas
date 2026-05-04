@@ -99,8 +99,8 @@ margin-bottom:40px;
 .card{
 background:white;
 border-radius:16px;
-padding:20px;
-box-shadow:0 10px 30px rgba(0,0,0,0.08);
+padding:22px;
+box-shadow:0 6px 18px rgba(0,0,0,0.06);
 border:2px solid #eee;
 transition:0.3s;
 position:relative;
@@ -177,6 +177,36 @@ background:#eef3ff;
 
 /* 👆 FIN DEL NUEVO CSS 👆 */
 
+.contact-box{
+display:flex;
+gap:15px;
+margin-top:20px;
+flex-wrap:wrap;
+}
+
+.contact-item{
+display:flex;
+align-items:center;
+gap:8px;
+padding:12px 18px;
+border-radius:12px;
+font-weight:600;
+font-size:14px;
+text-decoration:none;
+}
+
+.whatsapp{
+background:#e8f8f0;
+color:#1fa463;
+}
+
+.instagram{
+background:#f3f4f6;
+color:#333;
+}
+
+
+
 
 .bottom-section{
 display:grid;
@@ -218,13 +248,14 @@ display:block;
 .form input,
 .form select{
 width:100%;
-padding:15px;
-border-radius:12px;
-border:1px solid #e5eaf0;
+padding:16px;
+border-radius:14px;
+border:1px solid #e6eaf0;
 margin-bottom:18px;
 font-family:'Montserrat',sans-serif;
-background:#f9fbfd;
+background:#f8fafc;
 transition:0.25s;
+font-size:14px;
 }
 
 .form input:focus,
@@ -346,15 +377,16 @@ Además, te entregamos un plan de mantenimiento para que sepas exactamente qué 
 <div class="services">
 
 <div class="card blue featured">
-<div class="badge">RECOMENDADO</div>
+
 <div class="icon">💻</div>
 <h3>ASESORÍA ONLINE</h3>
 <div class="price">45 <span>USD</span></div>
 <ul>
 <li>✔ Análisis remoto del auto</li>
-<li>✔ Historial y fallas ocultas</li>
+<li>✔ Historial de dueños, papeletas, aspectos legales</li>
 <li>✔ Precios reales de mercado</li>
-<li>✔ Recomendación final</li>
+<li>✔ Recomendaciones</li>
+<li>✔ Duración 20 min</li>
 </ul>
 </div>
 
@@ -366,6 +398,7 @@ Además, te entregamos un plan de mantenimiento para que sepas exactamente qué 
 </div>
 
 <div class="card blue2">
+<div class="badge">RECOMENDADO</div>
 <div class="icon">🔧</div>
 <h3>SERVICIO MECÁNICO</h3>
 <div class="price">80 <span>USD</span></div>
@@ -383,6 +416,7 @@ Además, te entregamos un plan de mantenimiento para que sepas exactamente qué 
 <ul>
 <li>✔ Todo el servicio mecánico</li>
 <li>✔ Revisión legal</li>
+<li>✔ Costos de reparación</li>
 <li>✔ Informe PDF</li>
 </ul>
 </div>
@@ -394,7 +428,9 @@ Además, te entregamos un plan de mantenimiento para que sepas exactamente qué 
 <ul>
 <li>✔ Búsqueda del vehículo</li>
 <li>✔ Negociación de precio</li>
+<li>✔ Revisión mecánica y legal tipo premium</li>
 <li>✔ Acompañamiento notaría</li>
+<li>✔ Entrega en 3-6 semanas</li>
 </ul>
 </div>
 
@@ -443,11 +479,25 @@ plin: 955507470 <br>
 TC: 3.45
 <br>Nombre: Andres Talavera
 
-<br>
-La diferencia al culminar el servicio. <br><br>
-Telefono: +51972598538, IG: @predicar.pe
-<br>
+
+
+<br><br>
+
+<div class="contact-box">
+
+  <a href="https://wa.me/51972598538" target="_blank" class="contact-item whatsapp">
+    💬 +51 972 598 538
+  </a>
+
+  <div class="contact-item instagram">
+    📷 IG: @predicar.pe
+  </div>
+
+</div>
+
+<p style="margin-top:10px;">
 Para regalarte revisión de dueños, asesorías y más
+</p>
 </p>
 
 </div>
