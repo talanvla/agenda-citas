@@ -54,68 +54,61 @@ margin-top:0;
 
 .services{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
 gap:20px;
-margin-top:30px;
+margin-top:40px;
 }
 
 .card{
+background:white;
 border-radius:16px;
 padding:20px;
-background:white;
-box-shadow:0 8px 25px rgba(0,0,0,0.08);
+text-align:left;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+border:2px solid transparent;
 transition:0.3s;
+position:relative;
 }
 
 .card:hover{
-transform:translateY(-5px);
+transform:translateY(-6px);
+}
+
+.icon{
+font-size:28px;
+margin-bottom:10px;
 }
 
 .price{
 font-size:22px;
-font-weight:700;
+font-weight:800;
 margin:10px 0;
 }
 
-label{
-font-weight:600;
-display:block;
-margin-top:15px;
-}
-
-input,select{
-width:100%;
-padding:10px;
-margin-top:5px;
-border-radius:8px;
-border:1px solid #e5e7eb;
-background:#f9fafb;
-font-size:14px;
-}
-
-button{
-margin-top:25px;
+.badge{
+position:absolute;
+top:10px;
+left:10px;
 background:#2d5bff;
 color:white;
-border:none;
-padding:14px;
-width:100%;
-font-size:16px;
-border-radius:10px;
-cursor:pointer;
-font-weight:600;
+padding:4px 10px;
+border-radius:6px;
+font-size:12px;
 }
 
-button:hover{
-background:#1f45cc;
-}
+/* COLORES */
 
-#result{
-margin-top:15px;
-font-weight:600;
-text-align:center;
-}
+.blue{border-color:#2d5bff;}
+.green{border-color:#2ecc71;}
+.blue2{border-color:#3498db;}
+.purple{border-color:#9b59b6;}
+.orange{border-color:#e67e22;}
+.gold{border-color:#f1c40f;}
 
+/* FEATURED */
+.featured{
+background:#eef3ff;
+}
 /* 👇 PEGA AQUÍ 👇 */
 
 @media(max-width:900px){
@@ -183,47 +176,54 @@ Además, te entregamos un plan de mantenimiento para que sepas exactamente qué 
 
 <div class="services">
 
-<div class="card" style="border:2px solid #2d5bff;">
-<span style="background:#2d5bff;color:white;padding:4px 10px;border-radius:8px;font-size:12px;">
-RECOMENDADO
-</span>
-<h3>Asesoría Online 💻</h3>
+<div class="card blue featured">
+<span class="badge">RECOMENDADO</span>
+<div class="icon">💻</div>
+<h3>ASESORÍA ONLINE</h3>
 <p class="price">45 USD</p>
-<p>Análisis remoto, historial, fallas y recomendación final.</p>
+<ul>
+<li>Análisis remoto del auto</li>
+<li>Historial, fallas, precios reales</li>
+<li>Te digo si conviene o no</li>
+</ul>
 </div>
 
-<div class="card">
-<h3>Servicio Básico</h3>
+<div class="card green">
+<div class="icon">📄</div>
+<h3>SERVICIO BÁSICO</h3>
 <p class="price">70 USD</p>
-<p>Escaneo de kilometraje y airbags.</p>
+<p>Escaneo de kilometraje y airbags</p>
 </div>
 
-<div class="card">
-<h3>Servicio Mecánico</h3>
+<div class="card blue2">
+<div class="icon">🔧</div>
+<h3>SERVICIO MECÁNICO</h3>
 <p class="price">80 USD</p>
-<p>Revisión mecánica y electrónica completa + prueba de manejo.</p>
+<p>Revisión completa + prueba de manejo</p>
 </div>
 
-<div class="card">
-<h3>Servicio Premium</h3>
+<div class="card purple">
+<div class="icon">🛡️</div>
+<h3>SERVICIO PREMIUM</h3>
 <p class="price">100 USD</p>
-<p>Incluye revisión legal + informe en PDF con costos.</p>
+<p>Incluye revisión legal + informe PDF</p>
 </div>
 
-<div class="card" style="background:#fff3e6;">
-<h3>Servicio Exclusive</h3>
+<div class="card orange">
+<div class="icon">👤</div>
+<h3>SERVICIO EXCLUSIVE</h3>
 <p class="price">550 USD</p>
-<p>Búsqueda + negociación + notaría (3-6 semanas).</p>
+<p>Búsqueda + negociación + notaría</p>
 </div>
 
-<div class="card" style="background:#fff3e6;">
-<h3>Servicio Exclusive+</h3>
+<div class="card gold">
+<div class="icon">👑</div>
+<h3>SERVICIO EXCLUSIVE+</h3>
 <p class="price">690 USD</p>
-<p>Todo el servicio en 1-3 semanas.</p>
+<p>Servicio completo en 1-3 semanas</p>
 </div>
 
 </div>
-
 
 
 
