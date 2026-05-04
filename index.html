@@ -11,7 +11,7 @@
 body{
 font-family:'Montserrat',sans-serif;
 margin:0;
-background:#f4f6f8;
+background:linear-gradient(to bottom,#f4f6f8,#e9edf3);
 color:#333;
 }
 
@@ -30,7 +30,7 @@ width:100%;
 
 .hero-images img{
 width:100%;
-height:320px;
+height:360px;
 object-fit:cover;
 display:block;
 }
@@ -52,67 +52,36 @@ text-align:center;
 margin-top:0;
 }
 
-.services{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:20px;
-margin-top:40px;
+
+
+
+
+.featured{
+background:#eef3ff;
 }
 
-.card{
-background:white;
-border-radius:16px;
-padding:20px;
-text-align:left;
-box-shadow:0 10px 25px rgba(0,0,0,0.08);
-border:2px solid transparent;
-transition:0.3s;
+.title{
+text-align:center;
+font-weight:700;
+letter-spacing:1px;
+margin-top:40px;
 position:relative;
 }
 
-.card:hover{
-transform:translateY(-6px);
+.title::before,
+.title::after{
+content:"";
+display:inline-block;
+width:40px;
+height:2px;
+background:#ddd;
+margin:0 10px;
+vertical-align:middle;
 }
 
-.icon{
-font-size:28px;
-margin-bottom:10px;
-}
 
-.price{
-font-size:22px;
-font-weight:800;
-margin:10px 0;
-}
 
-.badge{
-position:absolute;
-top:10px;
-left:10px;
-background:#2d5bff;
-color:white;
-padding:4px 10px;
-border-radius:6px;
-font-size:12px;
-}
 
-/* COLORES */
-
-.blue{border-color:#2d5bff;}
-.green{border-color:#2ecc71;}
-.blue2{border-color:#3498db;}
-.purple{border-color:#9b59b6;}
-.orange{border-color:#e67e22;}
-.gold{border-color:#f1c40f;}
-
-/* FEATURED */
-.featured{
-background:#eef3ff;
-}
-
-.featured{
-background:#eef3ff;
-}
 
 /* 👇 AQUI PEGAS EL NUEVO CSS 👇 */
 
@@ -121,6 +90,7 @@ display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
 gap:25px;
 margin-top:40px;
+margin-bottom:40px;
 }
 
 .card{
@@ -130,6 +100,7 @@ padding:20px;
 box-shadow:0 10px 30px rgba(0,0,0,0.08);
 border:2px solid #eee;
 transition:0.3s;
+position:relative;
 }
 
 .card:hover{
@@ -137,7 +108,14 @@ transform:translateY(-6px);
 }
 
 .icon{
-font-size:32px;
+font-size:30px;
+background:#f4f6f8;
+width:50px;
+height:50px;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:12px;
 margin-bottom:10px;
 }
 
@@ -207,7 +185,7 @@ grid-template-columns:repeat(2,1fr);
 }
 
 .hero-images img{
-height:320px;
+height:360px;
 }
 }
 
@@ -217,7 +195,7 @@ grid-template-columns:1fr;
 }
 
 .hero-images img{
-height:320px;
+height:360px;
 }
 }
 
@@ -244,7 +222,7 @@ height:320px;
 <h1>Agenda tu cita</h1>
 
 <!-- 🔥 STORYTELLING -->
-<p style="margin-top:15px; line-height:1.6;">
+<p style="margin-top:15px; line-height:1.7; text-align:center; max-width:900px; margin-left:auto; margin-right:auto;">
 
 Andres es Ingeniero Mecatrónico de la PUCP y fundador de Predicar desde el año 2020, proyecto enfocado en ayudar a las personas a tomar decisiones inteligentes al momento de comprar un vehículo.
 
@@ -262,74 +240,9 @@ Además, te entregamos un plan de mantenimiento para que sepas exactamente qué 
 
 </p>
 
-<h2 style="text-align:center; margin-top:30px;">Elige tu servicio</h2>
+<h2 class="title">Elige tu servicio</h2>
 
 <div class="services">
-
-<div class="card blue featured">
-<div class="badge">RECOMENDADO</div>
-<div class="icon">💻</div>
-<h3>ASESORÍA ONLINE</h3>
-<div class="price">45 <span>USD</span></div>
-<ul>
-<li>✔ Análisis remoto del auto</li>
-<li>✔ Historial y fallas ocultas</li>
-<li>✔ Precios reales de mercado</li>
-<li>✔ Recomendación final</li>
-</ul>
-</div>
-
-<div class="card green">
-<div class="icon">📄</div>
-<h3>SERVICIO BÁSICO</h3>
-<div class="price">70 <span>USD</span></div>
-<p>Escaneo de kilometraje y airbags</p>
-</div>
-
-<div class="card blue2">
-<div class="icon">🔧</div>
-<h3>SERVICIO MECÁNICO</h3>
-<div class="price">80 <span>USD</span></div>
-<ul>
-<li>✔ Revisión mecánica completa</li>
-<li>✔ Diagnóstico electrónico</li>
-<li>✔ Prueba de manejo</li>
-</ul>
-</div>
-
-<div class="card purple">
-<div class="icon">🛡️</div>
-<h3>SERVICIO PREMIUM</h3>
-<div class="price">100 <span>USD</span></div>
-<ul>
-<li>✔ Todo el servicio mecánico</li>
-<li>✔ Revisión legal</li>
-<li>✔ Informe PDF</li>
-</ul>
-</div>
-
-<div class="card orange">
-<div class="icon">👤</div>
-<h3>SERVICIO EXCLUSIVE</h3>
-<div class="price">550 <span>USD</span></div>
-<ul>
-<li>✔ Búsqueda del vehículo</li>
-<li>✔ Negociación de precio</li>
-<li>✔ Acompañamiento notaría</li>
-</ul>
-</div>
-
-<div class="card gold">
-<div class="icon">👑</div>
-<h3>SERVICIO EXCLUSIVE+</h3>
-<div class="price">690 <span>USD</span></div>
-<ul>
-<li>✔ Todo el servicio exclusive</li>
-<li>✔ Entrega en 1-3 semanas</li>
-</ul>
-</div>
-
-</div><div class="services">
 
 <div class="card blue featured">
 <div class="badge">RECOMENDADO</div>
