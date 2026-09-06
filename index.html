@@ -18,6 +18,12 @@
 #f-fecha::-webkit-calendar-picker-indicator{
   filter:invert(1);opacity:.65;cursor:pointer;padding:2px;margin-right:-2px}
 #f-fecha::-webkit-calendar-picker-indicator:hover{opacity:1}
+
+/* La fila que mas vende: la lista de reparaciones con su costo.
+   Fondo propio y una estrella para que se despegue del resto. */
+.cmp-row.top{background:rgba(255,201,74,.055)}
+.cmp-row.top>div:first-child{color:#FFE9AE;font-weight:600;display:flex;align-items:flex-start;line-height:1.45}
+.cmp-row.top{border-top:1px solid rgba(255,201,74,.28);border-bottom:1px solid rgba(255,201,74,.28)}
 </style></head><body>
 <meta name="description" content="Peritaje e inspección vehicular en Lima. Ingeniero mecatrónico con más de 7 años en diseño y calidad automotriz. Sabe qué comprar antes de pagar.">
 <meta name="theme-color" content="#08090C">
@@ -652,7 +658,7 @@ footer{border-top:1px solid var(--hair);background:#06070A;padding-block:42px 30
       <p class="eyebrow" data-i18n="casos.eyebrow">Prueba, no promesas</p>
       <h2 data-i18n="casos.h2">Nueve autos. Nueve decisiones que cambiaron.</h2>
       <p data-i18n="casos.sub">Cada video muestra qué encontramos, qué significaba en dinero y qué hizo el cliente con esa información.</p>
-      <span class="sec-flag" data-i18n="casos.flag">Contenido de ejemplo — reemplazar con tus videos de Instagram / YouTube</span>
+      
     </div>
     <div class="reels" id="reelsGrid"></div>
     <p class="reels-note"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.6" y="1.6" width="12.8" height="12.8" rx="4" stroke="#5F6979" stroke-width="1.4"/><circle cx="8" cy="8" r="3.1" stroke="#5F6979" stroke-width="1.4"/><circle cx="11.9" cy="4.1" r="1" fill="#5F6979"/></svg><span data-i18n="reels.note">Videos publicados en @predicar.pe — desliza para ver más</span></p>
@@ -1093,7 +1099,7 @@ var T = {
 "scan.note":["Ejemplo ilustrativo de un informe Predicar","Illustrative example of a Predicar report","Beispielhafte Darstellung eines Predicar-Berichts"],
 
 "casos.eyebrow":["Prueba, no promesas","Proof, not promises","Beweise statt Versprechen"],
-"casos.h2":["Casos reportados, con los números encima de la mesa","Reported cases, with the numbers on the table","Gemeldete Fälle, mit Zahlen auf dem Tisch"],
+"casos.h2":["Resultados de los últimos clientes","Results from our latest clients","Ergebnisse unserer letzten Kunden"],
 "casos.sub":["No siempre se rechaza la compra. En cinco de estos casos el cliente compró — pagando menos, y sabiendo exactamente qué estaba comprando.","Walking away isn't always the answer. In five of these cases the client bought — paying less, and knowing exactly what they were buying.","Nicht immer ist der Rückzug die Antwort. In fünf dieser Fälle kaufte der Kunde — günstiger und mit vollem Wissen."],
 "casos.flag":["Precios en dólares · el precio final es el de cierre después de la inspección","Prices in US dollars · the final price is the closing price after the inspection","Preise in US-Dollar · der Endpreis ist der Abschlusspreis nach der Prüfung"],
 "casos.out":["Resultado","Outcome","Ergebnis"],
@@ -1369,8 +1375,7 @@ var CMP = [
   [["Escaneo OBD de todos los módulos","OBD scan of every module","OBD-Scan aller Steuergeräte"],1,0],
   [["Escaneo antes y después de la prueba de manejo","Scan before and after the road test","Scan vor und nach der Probefahrt"],1,0],
   [["Análisis del comportamiento del motor en marcha","Analysis of how the engine behaves while driving","Analyse des Motorverhaltens während der Fahrt"],1,0],
-  [["Consumo real de combustible medido","Real fuel consumption measured","Realer Kraftstoffverbrauch gemessen"],1,0],
-  [["Kilometraje contrastado con el escáner","Odometer cross-checked against the scanner","Kilometerstand mit Scanner abgeglichen"],1,0]
+  [["Consumo real de combustible medido","Real fuel consumption measured","Realer Kraftstoffverbrauch gemessen"],1,0]
  ]},
 
  {g:"cmp.g2", items:[
@@ -1386,7 +1391,7 @@ var CMP = [
 
  {g:"cmp.g3", items:[
   [["Informe en PDF con fotos de cada hallazgo","PDF report with a photo of every finding","PDF-Bericht mit Foto jedes Befunds"],1,0],
-  [["Costo real de cada reparación en Lima","Real cost of each repair in Lima","Realer Reparaturpreis in Lima"],1,0],
+  [["Lista de reparaciones necesarias, cada una con su costo real","List of needed repairs, each with its real cost","Liste nötiger Reparaturen, jede mit realem Preis"],1,0,1],
   [["Argumentos técnicos para negociar el precio","Technical arguments to negotiate the price","Technische Argumente für die Preisverhandlung"],1,0],
   [["Plan de mantenimiento después de la compra","Maintenance plan for after the purchase","Wartungsplan für nach dem Kauf"],1,0],
   [["Asesoría previa incluida","Prior consultation included","Vorberatung inklusive"],1,0],
@@ -1468,6 +1473,7 @@ var ROAD = [
 
 /* ---------- render ---------- */
 var CHK = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#0B3FD9"/><path d="M4.8 8.2l2.2 2.2 4.2-4.6" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var STAR = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="flex:none;margin-right:7px;vertical-align:-1px"><path d="M8 1.4l1.9 4 4.3.6-3.1 3 .74 4.3L8 11.3l-3.84 2-.74-4.3-3.1-3 4.3-.6z" fill="#FFC94A"/></svg>';
 var CHKG = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.4l3 3 6-6.6" stroke="#4A85FF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 var esc = function(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
 
@@ -1532,8 +1538,9 @@ function render(){
   CMP.forEach(function(g){
     h += '<div class="cmp-grp">'+esc(t(g.g))+'</div>';
     g.items.forEach(function(it){
-      h += '<div class="cmp-row"><div>'+esc(it[0][L])+'</div><div class="us">'+(it[1]?CHK:'<span class="no">–</span>')+
-           '</div><div>'+(it[2]?CHK:'<span class="no">–</span>')+'</div></div>';
+      h += '<div class="cmp-row'+(it[3]?' top':'')+'"><div>'+
+           (it[3]?STAR:'')+esc(it[0][L])+'</div><div class="us">'+(it[1]?CHK:'<span class="no">—</span>')+
+           '</div><div>'+(it[2]?CHK:'<span class="no">—</span>')+'</div></div>';
     });
   });
   document.getElementById("cmpTable").innerHTML = h;
