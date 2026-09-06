@@ -10,6 +10,14 @@
 .cp{background:none;border:1px solid var(--hair);color:var(--dim);border-radius:5px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;cursor:pointer}
 .cp:hover{color:var(--text);border-color:var(--line)}
 .cp.ok{color:#4ADE80;border-color:rgba(74,222,128,.4)}
+
+/* El selector de fecha: el icono nativo es negro y sobre fondo oscuro
+   desaparece. color-scheme le dice al navegador que dibuje su calendario
+   en modo oscuro, y el filtro deja el iconito visible. */
+#f-fecha{color-scheme:dark;cursor:pointer}
+#f-fecha::-webkit-calendar-picker-indicator{
+  filter:invert(1);opacity:.65;cursor:pointer;padding:2px;margin-right:-2px}
+#f-fecha::-webkit-calendar-picker-indicator:hover{opacity:1}
 </style></head><body>
 <meta name="description" content="Peritaje e inspección vehicular en Lima. Ingeniero mecatrónico con más de 7 años en diseño y calidad automotriz. Sabe qué comprar antes de pagar.">
 <meta name="theme-color" content="#08090C">
@@ -1122,8 +1130,8 @@ var T = {
 "inf.close":["Cerrar","Close","Schließen"],
 "inf.taller":["Con este informe vas a tu taller de confianza","Take this report to the workshop you trust","Mit diesem Bericht gehst du zu deiner Vertrauenswerkstatt"],
 "inf.tallerp":["Llegas sabiendo exactamente qué hay que reparar y cuánto debería costar. Pides solo lo necesario y nadie te cobra de más.","You arrive knowing exactly what needs fixing and what it should cost. You ask only for what is needed, and nobody overcharges you.","Du weißt genau, was repariert werden muss und was es kosten sollte. Du beauftragst nur das Nötige — und niemand rechnet zu viel ab."],
-"diff.b":["Un servicio común solo te dice si el auto está bien o mal","A common service only tells you whether the car is good or bad","Ein üblicher Service sagt dir nur, ob das Auto gut oder schlecht ist"],
-"diff.p":["No te ayuda a ahorrar en reparaciones ni en combustible. Esa diferencia te puede costar más de S/ 6 000 en el primer año.","It doesn't help you save on repairs or fuel. That gap can cost you more than S/ 6,000 in the first year.","Er hilft dir nicht, bei Reparaturen und Kraftstoff zu sparen. Diese Lücke kann dich im ersten Jahr über 6.000 S/ kosten."],
+"diff.b":["El escáner no sirve para ver si sale verde o rojo","A common service only tells you whether the car is good or bad","Ein üblicher Service sagt dir nur, ob das Auto gut oder schlecht ist"],
+"diff.p":["Sirve para leer cómo se comporta el auto: qué módulo falla, cuándo y por qué. Un código borrado la víspera vuelve a aparecer manejando, y eso solo se ve escaneando antes y después de la prueba de manejo.","It is for reading how the car behaves: which module fails, when and why. A code cleared the day before comes back while driving, and that only shows if you scan before and after the road test.","Er zeigt, wie sich das Auto verhält: welches Steuergerät wann und warum ausfällt. Ein tags zuvor gelöschter Fehler kehrt während der Fahrt zurück — sichtbar nur, wenn man vor und nach der Probefahrt scannt."],
 "nav.respaldo":["Respaldo","Who we are","Über uns"],
 "bk.eyebrow":["¿Quién realiza el trabajo?","Who does the work?","Wer die Arbeit macht"],
 "bk.h2":["Peritaje liderado por un ingeniero mecatrónico","Inspection led by a mechatronics engineer","Begutachtung unter Leitung eines Mechatronik-Ingenieurs"],
@@ -1155,7 +1163,7 @@ var T = {
 "cmp.col2s":["Inspección básica","Basic check","Basis-Check"],
 "cmp.what":["Qué se revisa","What is checked","Was geprüft wird"],
 "cmp.g1":["Inspección mecánica y estructural","Mechanical and structural inspection","Mechanische und strukturelle Prüfung"],
-"cmp.g2":["Análisis legal y documentario","Legal and document analysis","Rechts- und Dokumentenprüfung"],
+"cmp.g3":["Lo que te llevas, y ellos no dan","What you take away, and they don't give","Was du bekommst, und sie nicht geben"],"cmp.g2":["Análisis legal y documentario","Legal and document analysis","Rechts- und Dokumentenprüfung"],
 
 "save.eyebrow":["Lo que te hace ahorrar","Where you save","Wo du sparst"],
 "save.h2":["No solo revisamos autos: cuidamos tu inversión","We don't just check cars — we protect your investment","Wir prüfen nicht nur Autos — wir schützen deine Investition"],
@@ -1225,7 +1233,7 @@ var T = {
 "f.voucher":["Comprobante de pago","Payment receipt","Zahlungsbeleg"],
 "f.dur":["La inspección toma entre 45 minutos y 1 hora.","The inspection takes 45 minutes to 1 hour.","Die Prüfung dauert 45 Minuten bis 1 Stunde."],
 "f.blocked":["No atendemos esa fecha. Elige otro día.","We don't work that date. Pick another day.","An diesem Datum arbeiten wir nicht. Bitte anderen Tag wählen."],
-"f.nofree":["No quedan horarios libres ese día. Elige otra fecha.","No slots left that day. Pick another date.","An diesem Tag sind keine Termine frei. Bitte anderes Datum wählen."],
+"f.nofree":["No quedan horarios disponibles. Elige otra fecha.","No slots available. Pick another date.","Keine Termine verfügbar. Bitte anderes Datum wählen."],
 "f.errslot":["Elige una fecha y un horario disponible.","Pick a date and an available time.","Bitte Datum und freie Uhrzeit wählen."],
 "f.errdata":["Necesitamos tu nombre y tu correo para confirmarte la cita.","We need your name and email to confirm the appointment.","Wir brauchen Name und E-Mail, um den Termin zu bestätigen."],
 "f.errvoucher":["Sube el comprobante de pago para reservar el horario.","Upload the payment receipt to reserve the slot.","Zahlungsbeleg hochladen, um den Termin zu reservieren."],
@@ -1339,22 +1347,50 @@ var CASOS = [
   o:["Compra rechazada: la inversión superaba los USD 4 000.","Purchase rejected: the repair bill exceeded USD 4,000.","Kauf abgelehnt: Die Instandsetzung lag über 4.000 USD."]}
 ];
 
+/* Comparativa. Formato de cada fila: [concepto, Predicar, otros].
+   Las primeras filas coinciden a propósito: son las que dan credibilidad.
+   La diferencia se ve en las que solo tienen check de este lado. */
 var CMP = [
  {g:"cmp.g1", items:[
-  [["Motor","Engine","Motor"],1,1],[["Transmisión","Transmission","Getriebe"],1,1],[["Dirección","Steering","Lenkung"],1,1],
-  [["Suspensión","Suspension","Fahrwerk"],1,1],[["Frenos","Brakes","Bremsen"],1,1],[["Neumáticos","Tyres","Reifen"],1,1],
-  [["Carrocería","Bodywork","Karosserie"],1,1],[["Chasis y estructura","Chassis and structure","Rahmen und Struktur"],1,1],
-  [["Fugas","Leaks","Leckagen"],1,1],[["Sistema eléctrico","Electrical system","Elektrik"],1,1],
-  [["Interior del vehículo","Interior","Innenraum"],1,1],[["Prueba de manejo","Road test","Probefahrt"],1,1],
-  [["Estado general","Overall condition","Gesamtzustand"],1,1],[["Kilometraje","Odometer","Kilometerstand"],1,1]
+  [["Motor","Engine","Motor"],1,1],
+  [["Transmisión","Transmission","Getriebe"],1,1],
+  [["Dirección","Steering","Lenkung"],1,1],
+  [["Suspensión","Suspension","Fahrwerk"],1,1],
+  [["Frenos","Brakes","Bremsen"],1,1],
+  [["Neumáticos","Tyres","Reifen"],1,1],
+  [["Carrocería","Bodywork","Karosserie"],1,1],
+  [["Chasis y estructura","Chassis and structure","Rahmen und Struktur"],1,1],
+  [["Fugas","Leaks","Leckagen"],1,1],
+  [["Sistema eléctrico","Electrical system","Elektrik"],1,1],
+  [["Interior del vehículo","Interior","Innenraum"],1,1],
+  [["Prueba de manejo","Road test","Probefahrt"],1,1],
+  [["Estado general","Overall condition","Gesamtzustand"],1,1],
+  [["Kilometraje","Odometer","Kilometerstand"],1,1],
+  [["Escaneo OBD de todos los módulos","OBD scan of every module","OBD-Scan aller Steuergeräte"],1,0],
+  [["Escaneo antes y después de la prueba de manejo","Scan before and after the road test","Scan vor und nach der Probefahrt"],1,0],
+  [["Análisis del comportamiento del motor en marcha","Analysis of how the engine behaves while driving","Analyse des Motorverhaltens während der Fahrt"],1,0],
+  [["Consumo real de combustible medido","Real fuel consumption measured","Realer Kraftstoffverbrauch gemessen"],1,0],
+  [["Kilometraje contrastado con el escáner","Odometer cross-checked against the scanner","Kilometerstand mit Scanner abgeglichen"],1,0]
  ]},
+
  {g:"cmp.g2", items:[
   [["Papeletas","Traffic fines","Bußgelder"],1,1],
   [["Historial de robos","Theft history","Diebstahlhistorie"],1,1],
   [["Antecedentes de accidentes","Accident record","Unfallhistorie"],1,1],
   [["Impuestos y obligaciones pendientes","Outstanding taxes and debts","Offene Steuern und Verbindlichkeiten"],1,0],
   [["Órdenes de captura","Seizure orders","Beschlagnahmeanordnungen"],1,0],
+  [["Papeletas de SAT, Callao, SUTRAN y ATU","Fines from SAT, Callao, SUTRAN and ATU","Bußgelder von SAT, Callao, SUTRAN und ATU"],1,0],
+  [["Cantidad de propietarios anteriores","Number of previous owners","Anzahl der Vorbesitzer"],1,0],
   [["Revisión de antecedentes disponibles","Full available background check","Vollständige Hintergrundprüfung"],1,0]
+ ]},
+
+ {g:"cmp.g3", items:[
+  [["Informe en PDF con fotos de cada hallazgo","PDF report with a photo of every finding","PDF-Bericht mit Foto jedes Befunds"],1,0],
+  [["Costo real de cada reparación en Lima","Real cost of each repair in Lima","Realer Reparaturpreis in Lima"],1,0],
+  [["Argumentos técnicos para negociar el precio","Technical arguments to negotiate the price","Technische Argumente für die Preisverhandlung"],1,0],
+  [["Plan de mantenimiento después de la compra","Maintenance plan for after the purchase","Wartungsplan für nach dem Kauf"],1,0],
+  [["Asesoría previa incluida","Prior consultation included","Vorberatung inklusive"],1,0],
+  [["Te atiende el ingeniero que hizo el peritaje","You deal with the engineer who did the inspection","Du sprichst mit dem prüfenden Ingenieur"],1,0]
  ]}
 ];
 
@@ -2093,6 +2129,13 @@ async function book(e){
   f.min = hoy;
   if (!f.value || f.value < hoy) f.value = hoy;
   f.addEventListener("change", loadAvailability);
+
+  // Tocar el campo abre el calendario. En movil se agradece: el area del
+  // iconito es diminuta. showPicker no existe en Safari, de ahi el try.
+  f.addEventListener("click", function(){
+    try { if (this.showPicker) this.showPicker(); } catch (e) {}
+  });
+
   document.getElementById("bookForm").addEventListener("submit", book);
   cargarServicios();
   loadAvailability();
